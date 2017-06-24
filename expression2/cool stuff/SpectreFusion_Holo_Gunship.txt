@@ -1,0 +1,196 @@
+@name SpectreFusion Holo Gunship
+@inputs Pod:wirelink Cam:wirelink
+@persist GunSec InfRed CamTog Ranger:ranger CamPos:vector Bullet:entity
+@model models/hunter/plates/plate1x1.mdl
+#[
+LAST UPDATED:           1 December 2015
+LATEST VERSION:         https://docs.google.com/document/d/1I7pA9yzO35_poLQ9vmEnbPoS9rCtuCfWnH_iS_9RgqA/pub
+CHANGES:                - Smoothened camera (now Parented to E)
+                        - Increased movement speed
+                        - Switched cylinders to high-quality models
+]#
+#Run 20x per second
+runOnTick(1)
+
+#Assign chip as E
+E = entity()
+   
+#Primary Controls
+E:applyForce(E:forward()*E:mass()*450*(Pod["W",number]-Pod["S",number]))
+E:applyForce(E:up()*E:mass()*80*(Pod["Space",number]-Pod["Shift",number]))
+E:applyAngForce(ang(0,1,0)*E:mass()*20*(Pod["A",number]-Pod["D",number]))
+#Speed and Angle Stability
+E:applyForce(-E:vel()*E:mass()*0.3)
+E:applyAngForce(-E:angVel()*E:mass()*0.6)
+E:applyAngForce((ang(0,E:angles():yaw(),0)-E:angles())*E:mass()*5)
+#Camera Attach to E
+if(changed(Pod:entity():driver())){
+    Cam["Parent",entity] = E
+    Cam["Position",vector] = CamPos
+}
+#Camera Position Toggle
+if(changed(Pod["Mouse2",number])&Pod["Mouse2",number]){CamTog++}
+if(CamTog > 1){CamTog = 0}
+if(!CamTog){
+    CamPos = E:pos()+E:forward()*-550+E:up()*30
+    Cam["Position",vector] = CamPos
+}
+if(CamTog){
+    CamPos = E:pos()+E:forward()*50+E:up()*350
+    Cam["Position",vector] = CamPos
+}
+   
+#Camera
+Cam["Activated",number] = Pod["Active",number]
+Cam["Angle",angle] = Pod["Entity",entity]:driver():eyeAngles()
+   
+#Camera Infra-Red Vision
+if(changed(Pod["R",number])&Pod["R",number]){InfRed++}
+if(InfRed > 1){InfRed = 0}
+Cam["FLIR",number] = InfRed
+   
+#Turret Timer
+GunSec++
+#Turret Fire
+if(Pod["Mouse1",number] & changed(int(GunSec/5))){
+    Ranger = rangerOffset(CamPos,CamPos+((vec(25000,0,0)):rotate(Pod["Entity",entity]:driver():eyeAngles())))
+    Bullet = propSpawn("models/props_phx/mk-82.mdl",Ranger:pos()+vec(0,0,50),ang(90,0,0),1)
+    Bullet:setAlpha(0)
+}
+Bullet:propBreak()
+   
+#Hologram Creation
+if(first()){
+    E:propGravity(0)
+    E:soundPlay(1,0,"vehicles/apc/apc_idle1.wav")
+    #MIDDLE
+    #Main Body Box
+    holoCreate(1,E:pos()+vec(0,0,48),vec(14,9,9),ang(0,0,0),vec(100,100,100),"cube")
+    #Side Lower Cylinder Holders
+    holoCreate(2,E:pos()+vec(-12,0,48),vec(6,18,1),ang(0,0,0),vec(100,100,100),"cube")
+    #Left Cylinder Large
+    holoCreate(3,E:pos()+vec(-12,96,48),vec(4,4,12),ang(90,0,0),vec(100,100,100),"cylinder")
+    #Right Cylinder Large
+    holoCreate(4,E:pos()+vec(-12,-96,48),vec(4,4,12),ang(90,0,0),vec(100,100,100),"cylinder")
+    #Left Cylinder Small
+    holoCreate(5,E:pos()+vec(-12,96,48),vec(3,3,14),ang(90,0,0),vec(100,100,100),"cylinder")
+    #Right Cylinder Small
+    holoCreate(6,E:pos()+vec(-12,-96,48),vec(3,3,14),ang(90,0,0),vec(100,100,100),"cylinder")
+    #Main Body Wide Box
+    holoCreate(7,E:pos()+vec(0,0,48),vec(12,11,6),ang(0,0,0),vec(100,100,100),"cube")
+    #Main Front Left Box Triangle
+    holoCreate(8,E:pos()+vec(84,42,48),vec(4,6,2),ang(0,90,90),vec(100,100,100),"prism")
+    #Main Front Right Box Triangle
+    holoCreate(9,E:pos()+vec(84,-42,48),vec(4,6,2),ang(0,90,90),vec(100,100,100),"prism")
+    #Main Front Left Box Triangle
+    holoCreate(10,E:pos()+vec(-84,42,48),vec(4,6,2),ang(0,-90,90),vec(100,100,100),"prism")
+    #Main Front Right Box Triangle
+    holoCreate(11,E:pos()+vec(-84,-42,48),vec(4,6,2),ang(0,-90,90),vec(100,100,100),"prism")
+           
+    #FRONT
+    #Front Triangle Window
+    holoCreate(12,E:pos()+vec(184,0,75),vec(10,6,3.5),ang(0,0,0),vec(100,100,200),"prism")
+    #Front Triangle Middle
+    holoCreate(13,E:pos()+vec(184,0,27),vec(10,6,4.5),ang(180,0,0),vec(100,100,100),"prism")
+    #Front Triangle Bottom
+    holoCreate(14,E:pos()+vec(221.5,0,18.5),vec(6.68,6,1.9),ang(138,0,0),vec(100,100,100),"prism")
+    #Front Triangle Rear Top
+    holoCreate(15,E:pos()+vec(84,0,75),vec(18,9,4.5),ang(0,0,0),vec(100,100,100),"prism")
+    #Front Triangle Rear Bottom
+    holoCreate(16,E:pos()+vec(84,0,12),vec(18,9,3),ang(180,0,0),vec(100,100,100),"prism")
+    #Front Window Rectangle
+    holoCreate(17,E:pos()+vec(76,0,75),vec(18,6,3.5),ang(0,0,0),vec(100,100,200),"cube")
+    #Front Bottom Rectangle
+    holoCreate(18,E:pos()+vec(76,0,24),vec(18,6,4),ang(0,0,0),vec(100,100,100),"cube")
+    #Front Middle Rectangle
+    holoCreate(19,E:pos()+vec(138,0,39),vec(9,9,1.5),ang(0,0,0),vec(100,100,100),"cube")
+    #Front Top Window Roof Rectangle
+    holoCreate(20,E:pos()+vec(118,0,99),vec(7,6,0.5),ang(0,0,0),vec(100,100,100),"cube")
+    #Front Top Window Triangle Cover
+    holoCreate(21,E:pos()+vec(172,0,96),vec(1,5.98,2),ang(90,0,0),vec(100,100,100),"prism")
+           
+    #REAR
+    #Tail Body Triangle
+    holoCreate(22,E:pos()+vec(-288,0,75),vec(4.5,8,24),ang(-90,0,0),vec(100,100,100),"pyramid")
+    #Body Back Triangle
+    holoCreate(23,E:pos()+vec(-114,0,48),vec(9,9,5),ang(-90,0,0),vec(100,100,100),"prism")
+    #Body Back Tail Cube
+    holoCreate(24,E:pos()+vec(-114,0,75),vec(5,8,4.5),ang(0,0,0),vec(100,100,100),"cube")
+    #Tail Top Box
+    holoCreate(25,E:pos()+vec(-288,0,88.5),vec(24,4,2.25),ang(0,0,0),vec(100,100,100),"cube")
+    #Tail Horizontal Stabilizer
+    holoCreate(26,E:pos()+vec(-408,0,99),vec(4,12,0.5),ang(0,0,0),vec(100,100,100),"cube")
+    #Tail Left Vertical Stabilizer
+    holoCreate(27,E:pos()+vec(-408,72,99),vec(4,6,0.5),ang(0,0,90),vec(100,100,100),"cube")
+    #Tail Right Vertical Stabilizer Stab
+    holoCreate(28,E:pos()+vec(-408,-72,99),vec(4,6,0.5),ang(0,0,90),vec(100,100,100),"cube")
+       
+    #TOP
+    #Top Bottom Rectangle
+    holoCreate(29,E:pos()+vec(-12,0,108),vec(12,7,2),ang(0,0,0),vec(100,100,100),"cube")
+    #Top Top Rectangle
+    holoCreate(30,E:pos()+vec(-12,0,124),vec(9,4,1),ang(0,0,0),vec(100,100,100),"cube")
+    #Top Bottom Rectangle Front Triangle
+    holoCreate(31,E:pos()+vec(69,0,102),vec(3,7,1.5),ang(90,0,0),vec(100,100,100),"prism")
+    #Top Bottom Rectangle Back Triangle
+    holoCreate(32,E:pos()+vec(-96,0,102),vec(3,7,2),ang(-90,0,0),vec(100,100,100),"prism")
+    #Top Top Rectangle Front Triangle
+    holoCreate(33,E:pos()+vec(48,0,118),vec(2,4,1),ang(90,0,0),vec(100,100,100),"prism")
+    #Top Top Rectangle Back Triangle
+    holoCreate(34,E:pos()+vec(-72,0,118),vec(2,4,1),ang(-90,0,0),vec(100,100,100),"prism")  
+   
+    #Top Wings
+    holoCreate(35,E:pos()+vec(-12,0,112),vec(7,28,0.5),ang(0,0,0),vec(100,100,100),"cube")
+    #Left Torus
+    holoCreate(36,E:pos()+vec(-12,231,108),vec(18,18,6),ang(0,0,0),vec(100,100,100),"torus3")
+    #Right Torus
+    holoCreate(37,E:pos()+vec(-12,-231,108),vec(18,18,6),ang(0,0,0),vec(100,100,100),"torus3")
+    #Side Propellor Holders
+    holoCreate(38,E:pos()+vec(-12,0,112),vec(3,30,1),ang(0,0,0),vec(100,100,100),"cube")
+    #Left Torus Cylinder Large
+    holoCreate(39,E:pos()+vec(-12,166,112),vec(12,12,1.2),ang(0,0,0),vec(100,100,100),"cylinder")
+    #Right Torus Cylinder Large
+    holoCreate(40,E:pos()+vec(-12,-166,112),vec(12,12,1.2),ang(0,0,0),vec(100,100,100),"cylinder")
+    #Left Torus Prop Cylinder Small
+    holoCreate(41,E:pos()+vec(-12,166,112),vec(4,4,1.8),ang(0,0,0),vec(100,100,100),"cylinder")
+    #Right Torus Prop Cylinder Small
+    holoCreate(42,E:pos()+vec(-12,-166,112),vec(4,4,1.8),ang(0,0,0),vec(100,100,100),"cylinder")
+   
+    #Attach Holograms to E2 Chip
+    holoParent(1,E)
+    holoParent(2,E)
+    holoParent(3,E)
+    holoParent(4,E)
+    holoParent(5,E)
+    holoParent(6,E)
+    holoParent(7,E)
+    holoParent(8,E)
+    holoParent(9,E)
+    holoParent(10,E)
+    holoParent(11,E)
+    holoParent(12,E)
+    holoParent(13,E)
+    holoParent(14,E)
+    holoParent(15,E)
+    holoParent(16,E)
+    holoParent(17,E)
+    holoParent(18,E)
+    holoParent(19,E)
+    holoParent(20,E)
+    holoParent(21,E)
+    holoParent(22,E)
+    holoParent(23,E)
+    holoParent(24,E)
+    holoParent(25,E)
+    holoParent(26,E)
+    holoParent(27,E)
+    holoParent(28,E)
+    holoParent(29,E)
+    holoParent(30,E)
+    holoParent(31,E)
+    holoParent(32,E)
+    holoParent(33,E)
+    holoParent(34,E)
+    holoParent(35,E)
+    holoParent(36,E)
+}    

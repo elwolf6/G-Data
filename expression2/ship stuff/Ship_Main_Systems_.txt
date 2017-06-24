@@ -1,0 +1,25 @@
+@name Ship Main Systems 
+@inputs Active Ship:entity
+@outputs 
+@persist Moving
+@trigger 
+
+#Gunship control by elwolf6
+#wire the Active input to the pod controllers active and wire the Ship input to the gunships parent prop
+
+if( Ship:pos() == Ship:pos() + 1 ) {
+    Moving = 1
+}   
+
+if( Active == 1) {
+    owner():soundPlay(1,10,"npc/combine_gunship/dropship_dropping_pod_loop1.wav")
+    owner():soundPlay(2,10,"npc/combine_gunship/dropship_engine_near_loop1.wav")
+}
+
+if( Active == 0 ) {
+    soundStop(1,1)
+    soundStop(2,1)
+}
+
+if( Moving == 1 ) {
+}

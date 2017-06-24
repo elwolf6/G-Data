@@ -1,0 +1,100 @@
+@name Repair Manager V2
+@inputs HUD:wirelink
+@outputs 
+@persist Repps:table ReppsTimeRemain:table A
+
+#Created By ertex, kindly do not remove this line
+#2017-02-12 
+#Automatic controll of reps and showing it neatly in a EGP HUD
+if(first() | dupefinished()){
+findIncludePlayerProps(owner())
+findByClass("sc_repair")
+
+
+Repps =  findToTable()
+print("Found : "+Repps:count() +" Repairers")
+Core = entity():getCoreEnt()
+A = Repps:count()
+I=0
+HUD:egpClear()
+
+HUD:egpBox(219,vec2(180,150+(A+3)*22.5),vec2(220,(A+1)*45))
+HUD:egpColor(219,vec(60,60,60))
+HUD:egpAlpha(219,100)
+while(A>I){
+       I++ 
+
+HUD:egpCircle(220+I,vec2(35,180+I*45),vec2(30,10))
+HUD:egpColor(220+I,vec(0,150,255))
+HUD:egpText(220+A+I,Repps[I,entity]:getRepairName(),vec2(80,170+I*45))
+
+
+}
+
+
+
+
+timer(("delay"),1)
+
+}
+interval(100)
+if(clk("delay")){
+    I=0
+    ShieldDef = Core:getShieldMax() - Core:getShieldAmount()
+    ArmorDef = Core:getArmorMax() - Core:getArmorAmount()
+    Cap = Core:lsAmount("Energy")
+    while(A>I){
+       I++ 
+    ReppsTimeRemain[I,number]= ReppsTimeRemain[I,number]-0.5
+       O = Repps[I,entity] 
+       OWL = O:wirelink()
+    if(O:getRepairType()== "Shield"){#if the repair is a sheild repairer
+        if(O:getRepairAmount()> ShieldDef & O:getRepairCost()<Cap){
+            ReppsTimeRemain[I,number] = O:getRepairDuration()
+            OWL["On",number] = 1
+            hint("turned on rep #"+I,2)
+            HUD:egpColor(220+I,vec(0,255,0))
+            timer("Repp"+I,O:getRepairDuration())
+            }
+            
+        
+        }
+    elseif(O:getRepairType()== "Armor"){#if the repair is a armour repairer
+        if(O:getRepairAmount()> ShieldDef & O:getRepairCost()<Cap){
+            ReppsTimeRemain[I,number] = O:getRepairDuration()
+            OWL["On",number] = 1
+            hint("turned on rep #"+I,2)
+            HUD:egpColor(220+I,vec(0,255,0))
+            timer("Repp"+I,O:getRepairDuration()*1010)
+           }
+           
+        
+        }       
+        HUD:egpText(220+A*2+I,""+OWL["Cycle%",number]+"%",vec2(85,190+I*45))
+        HUD:egpColor(220+A*2+I,vec(0,0,0))
+         
+        
+       
+        
+}
+    
+    
+    
+    timer(("delay"),500)
+    }
+    
+    I = 0 #This block turns off repairers when They have repaired one cycle
+    while(A>I){
+       I++ 
+    if(clk("Repp"+I)){
+        O = Repps[I,entity] 
+        OWL = O:wirelink()
+        OWL["On",number] = 0
+        HUD:egpColor(220+I,vec(255,0,0))
+        
+        }
+    
+}
+
+
+

@@ -1,0 +1,45 @@
+@name Hat
+@inputs 
+@outputs 
+@persist 
+
+if (first()) { #not really needed
+    
+    holoCreate(1)
+    holoModel(1,"hqcylinder2")
+    holoScale(1,vec(10,10,10)/12)
+    holoColor(1,vec(0,0,0))
+    holoVisible(1,owner(),0)
+    holoMaterial(1,"models/debug/debugwhite")
+    
+    holoCreate(2)
+    holoModel(2,"hqcylinder2")
+    holoScale(2,vec(10.4,10.4,2)/12)
+    holoColor(2,vec(255,255,255))
+    holoVisible(2,owner(),0)
+    holoMaterial(2,"models/debug/debugwhite")
+
+    holoCreate(3)
+    holoModel(3,"hqcylinder2")
+    holoScale(3,vec(21,21,0.5)/12)
+    holoColor(3,vec(0,0,0))
+    holoVisible(3,owner(),0)
+    holoMaterial(3,"models/debug/debugwhite")
+    
+    
+    Ang = owner():attachmentAng("eyes") + ang(2,2,-3) #You might need to change these offsets
+    StartPos = owner():attachmentPos("eyes") - vec(2.6,0.10,12):rotate(Ang) #You might need to change these offsets
+    
+    holoPos(1,StartPos + vec(0,0,20):rotate(Ang))
+    holoPos(2,StartPos + vec(0,0,16):rotate(Ang))
+    holoPos(3,StartPos + vec(0,0,15):rotate(Ang))
+    
+    holoAng(1,Ang)
+    holoAng(2,Ang)
+    holoAng(3,Ang)
+    
+    holoParentAttachment(1,owner(),"eyes")
+    holoParent(2,1)
+    holoParent(3,1)
+}
+

@@ -1,0 +1,87 @@
+@name sc-targetpractice (by mouldy)
+@inputs 
+@outputs 
+@persist Angle:angle Vec:vector Core:entity MinVel MaxVel StartVel StartAng:angle [MinVec MaxVec]:vector Vel Target:entity
+@trigger 
+@autoupdate
+
+#By Mouldy
+
+if(first()|dupefinished())
+{
+    #randint
+    Target = findPlayerByName("arct")
+    #print(Target)
+    Core = entity():isConstrainedTo()
+    function number rand()
+    {
+        return random()*2000+1000 
+    }
+    Angle = ang(-90,0,0)
+    Vel = 550
+    MinVel = 1000
+    MaxVel = 1500
+    timer("Velocity Change",200)
+    timer("Vec Change",2500)
+    
+    Increment = 4096
+    function number getBoundary(Direction:vector)
+    {
+        local MyIncrement = Increment
+        local StartingVec = vec()
+        while(MyIncrement > 20)
+        {
+            if(!(StartingVec+Direction*MyIncrement):isInWorld())
+            {
+                MyIncrement = MyIncrement/2
+            }
+            else
+            {
+                StartingVec = StartingVec + Direction*MyIncrement
+            }
+        }
+        return StartingVec:length()
+    }
+    MaxZ=getBoundary(vec(0,0,1))
+    MinZ=getBoundary(vec(0,0,-1))
+    
+    MaxX=getBoundary(vec(1,0,0))
+    MinX=getBoundary(vec(-1,0,0))
+    
+    MaxY=getBoundary(vec(0,1,0))
+    MinY=getBoundary(vec(0,-1,0))
+    MaxVec = vec(MaxX,MaxY,MaxZ)
+    MinVec = vec(-MinX,-MinY,-MinZ)
+    Vec = Core:pos()
+}
+runOnTick(1)
+
+
+if(clk("Velocity Change"))
+{
+    Vel = randint(MinVel,MaxVel)
+    timer("Velocity Change",rand())
+}
+if(clk("Vec Change") | Core:pos():distance(Vec) < 1000)
+{
+    Vec = Target:pos() + randvec()*2500##randvec(MinVec,MaxVec)#
+    Vec = clamp(Vec,MinVec,MaxVec)
+    local DistVec = Vec - Core:pos()
+    local Dist = DistVec:length()
+    #Vec = DistVec:normalized()*randint(min(3000,Dist),min(8500,Dist))
+    if(clk("Vec Change"))
+    {
+        timer("Vec Change",2500)
+    }
+}
+Angle = (Vec - Core:pos()):toAngle()
+
+TarQ = quat(Angle) 
+CurQ = quat(Core) 
+Q = TarQ/CurQ
+V = Core:toLocal(rotationVector(Q)+Core:pos())
+Core:applyTorque((30*V - 4*Core:angVelVector())*Core:inertia())
+#if(Core:vel():length()<Vel)
+#{
+Core:setVel(Core:forward()*Vel)
+#}

@@ -1,0 +1,118 @@
+@name Spaceship Gyro Replacement
+@inputs Active User:entity Forward Backward Up Down StrifeLeft StrifeRight KeepLevel
+@outputs TotalMass TotalSpeed ShipID:number
+@persist Ship:table Parent:entity UprightAng:angle PropCache:array TotalMass:number
+@trigger all
+
+function entity getPlayer()
+{
+    if ( User:isVehicle() ) { return User:driver() }
+    return User
+}
+
+function array recalcMass( Base:entity )
+{
+    TotalMass = 0
+    Constraints = Base:getConstraints()
+    Constraints:pushEntity( Base )
+    for(I=1,Constraints:count(),1)
+    {
+        TotalMass += Constraints[I, entity]:mass()
+        if ( Constraints[I,entity]:parent() != Parent )
+        {
+            if ( Constraints[I,entity]:parent():isValid() ) { Constraints[I,entity]:deparent() }
+            Constraints[I,entity]:parentTo( Parent )
+        }
+    }
+    return Constraints
+}
+
+function enableGravity( Constraints:array, Value:number )
+{
+    for(I=1,Constraints:count(),1)
+    {
+        local Self = Constraints[I, entity]
+        Self:propGravity( (Value == 0 ? 0 : 1) )
+    }
+}
+
+function doForce( Constraints:array, Force:vector )
+{
+    for(I=1,Constraints:count(),1)
+    {
+        local Self = Constraints[I, entity]
+        Self:applyOffsetForce( Force, MassCenter )
+    }
+}
+
+if ( first() )
+{
+    Parent = entity():isWeldedTo()
+    ParentCache = array()
+    UprightAngle = Parent:angles()
+    PropCache = recalcMass( Parent )
+    Inertia = shiftL(ang(ShipInertia)):setYaw(0)
+}
+
+if ( first() | ~ShipName ) {
+    Ship["id", number] = entity():id()
+}
+
+
+if ( (~Active && Active) | (Active && first()) ) {
+    PropCache = recalcMass( Parent )
+    runOnTick(1)
+    timer("recalcMass", 1000)
+    soundPlay(1,0,"/ambient/atmosphere/quiet_cellblock_amb.wav")
+    soundPlay(2,0,"/ambient/alarms/razortrain_horn1.wav")
+    ShipForce = Parent:vel()
+    enableGravity( PropCache, 0 )
+}
+
+if ( clk("recalcMass") )
+{
+    PropCache = recalcMass( Parent )
+}
+
+
+if ( Active )
+{
+    if ( tickClk() )
+    {
+        Driver = getPlayer()
+        
+        if ( Forward ) { ShipForce += (Parent:forward()*TotalMass) }
+        if ( Backward ) { ShipForce -= (Parent:forward()*TotalMass) }
+        if ( Up ) { ShipForce += (Parent:up()*TotalMass) }
+        if ( Down ) { ShipForce -= (Parent:up()*TotalMass) }
+        if ( StrifeRight ) { ShipForce += (Parent:right()*TotalMass) }
+        if ( StrifeLeft ) { ShipForce -= (Parent:right()*TotalMass) }
+    }
+    
+    if ( !Parent:isFrozen() & !Parent:isPlayerHolding() )
+    {
+        PAngles = Parent:angles()
+        if ( round(PAngles:pitch()) | round(PAngles:roll()) )
+        {
+            Parent:setAng( ang(KeepLevel ? 0 : PAngles:pitch(), PAngles:yaw(), KeepLevel ? 0 : PAngles:roll()) )
+            #Parent:rerotate(  ang(KeepLevel ? 0 : PAngles:pitch(), Parent:angles():yaw(), KeepLevel ? 0 : PAngles:roll())  )
+        }
+    }
+    Parent:applyForce( ShipForce * 100.0 )
+}
+
+if( ~Active && !Active )
+{
+    runOnTick(0)
+    enableGravity( PropCache, 1 )
+    stoptimer("recalcMass")
+    soundStop(1)
+    soundPlay(2, 0, "/ambient/energy/whiteflash.wav")
+}
+
+ShipAngles = Parent:angles()
+
+TotalSpeed = Parent:vel():length()
+
+ShipID = Ship["id",number]
+

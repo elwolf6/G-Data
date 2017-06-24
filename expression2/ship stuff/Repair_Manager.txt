@@ -1,0 +1,12 @@
+@name Repair Manager
+@inputs ShipCore:wirelink
+@outputs Repairs
+@persist
+@trigger 
+
+if( ShipCore["Shield",number] < ShipCore["Max Shield",number]){
+}
+
+if( ShipCore["Armor",number] < ShipCore["Max Armor",number]){
+}
+

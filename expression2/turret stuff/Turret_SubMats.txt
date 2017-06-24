@@ -1,0 +1,114 @@
+@name Turret SubMats
+@inputs 
+@outputs 
+@persist 
+@trigger 
+
+#[
+    Shoutout to Expression Advanced 2! Have you tried it yet?
+    You should try it. It's a hundred times faster than E2
+    and has more features. http://goo.gl/sZcyN9
+
+    A new preprocessor command, @autoupdate has been added.
+    See the wiki for more info.
+
+    Documentation and examples are available at:
+    http://wiki.wiremod.com/wiki/Expression_2
+    The community is available at http://www.wiremod.com
+]#
+
+if( first()) {
+findByClass("sc_turret")
+findByModel("models/mandrac/energy/cap_beam_base.mdl")
+Array = findToArray()
+T1 = Array[1,entity]
+T2 = Array[2,entity]
+T3 = Array[3,entity]
+T4 = Array[4,entity]
+T5 = Array[5,entity]
+T6 = Array[6,entity]
+T7 = Array[7,entity]
+                
+T1:turretHoloSubMaterial(1,2,"models/props_combine/metal_combinebridge001")
+T1:turretHoloSubMaterial(1,3,"phoenix_storms/bluemetal")
+
+T1:turretHoloSubMaterial(2,2,"phoenix_storms/bluemetal")
+T1:turretHoloSubMaterial(2,4,"models/props_combine/metal_combinebridge001")
+T1:turretHoloSubMaterial(2,3,"spacebuild/fusion2")
+
+T1:setSubMaterial(2,"phoenix_storms/bluemetal")
+T1:setSubMaterial(3,"models/props_combine/metal_combinebridge001")
+
+#-------------------------------------------------------------------------------
+
+T2:turretHoloSubMaterial(1,2,"models/props_combine/metal_combinebridge001")
+T2:turretHoloSubMaterial(1,3,"phoenix_storms/bluemetal")
+
+T2:turretHoloSubMaterial(2,2,"phoenix_storms/bluemetal")
+T2:turretHoloSubMaterial(2,4,"models/props_combine/metal_combinebridge001")
+T2:turretHoloSubMaterial(2,3,"spacebuild/fusion2")
+
+T2:setSubMaterial(2,"phoenix_storms/bluemetal")
+T2:setSubMaterial(3,"models/props_combine/metal_combinebridge001")
+
+#---------------------------------------------------------------------------------
+
+T3:turretHoloSubMaterial(1,2,"models/props_combine/metal_combinebridge001")
+T3:turretHoloSubMaterial(1,3,"phoenix_storms/bluemetal")
+
+T3:turretHoloSubMaterial(2,2,"phoenix_storms/bluemetal")
+T3:turretHoloSubMaterial(2,4,"models/props_combine/metal_combinebridge001")
+T3:turretHoloSubMaterial(2,3,"spacebuild/fusion2")
+
+T3:setSubMaterial(2,"phoenix_storms/bluemetal")
+T3:setSubMaterial(3,"models/props_combine/metal_combinebridge001")
+
+#-----------------------------------------------------------------------------------
+
+T4:turretHoloSubMaterial(1,2,"models/props_combine/metal_combinebridge001")
+T4:turretHoloSubMaterial(1,3,"phoenix_storms/bluemetal")
+
+T4:turretHoloSubMaterial(2,2,"phoenix_storms/bluemetal")
+T4:turretHoloSubMaterial(2,4,"models/props_combine/metal_combinebridge001")
+T4:turretHoloSubMaterial(2,3,"spacebuild/fusion2")
+
+T4:setSubMaterial(2,"phoenix_storms/bluemetal")
+T4:setSubMaterial(3,"models/props_combine/metal_combinebridge001")
+
+#------------------------------------------------------------------------------------
+
+T5:turretHoloSubMaterial(1,2,"models/props_combine/metal_combinebridge001")
+T5:turretHoloSubMaterial(1,3,"phoenix_storms/bluemetal")
+
+T5:turretHoloSubMaterial(2,2,"phoenix_storms/bluemetal")
+T5:turretHoloSubMaterial(2,4,"models/props_combine/metal_combinebridge001")
+T5:turretHoloSubMaterial(2,3,"spacebuild/fusion2")
+
+T5:setSubMaterial(2,"phoenix_storms/bluemetal")
+T5:setSubMaterial(3,"models/props_combine/metal_combinebridge001")
+
+#--------------------------------------------------------------------------------------
+
+T6:turretHoloSubMaterial(1,2,"models/props_combine/metal_combinebridge001")
+T6:turretHoloSubMaterial(1,3,"phoenix_storms/bluemetal")
+
+T6:turretHoloSubMaterial(2,2,"phoenix_storms/bluemetal")
+T6:turretHoloSubMaterial(2,4,"models/props_combine/metal_combinebridge001")
+T6:turretHoloSubMaterial(2,3,"spacebuild/fusion2")
+
+T6:setSubMaterial(2,"phoenix_storms/bluemetal")
+T6:setSubMaterial(3,"models/props_combine/metal_combinebridge001")
+
+#---------------------------------------------------------------------------------------
+
+T7:turretHoloSubMaterial(1,2,"models/props_combine/metal_combinebridge001")
+T7:turretHoloSubMaterial(1,3,"phoenix_storms/bluemetal")
+
+T7:turretHoloSubMaterial(2,2,"phoenix_storms/bluemetal")
+T7:turretHoloSubMaterial(2,4,"models/props_combine/metal_combinebridge001")
+T7:turretHoloSubMaterial(2,3,"spacebuild/fusion2")
+
+T7:setSubMaterial(2,"phoenix_storms/bluemetal")
+T7:setSubMaterial(3,"models/props_combine/metal_combinebridge001")
+
+}

@@ -1,0 +1,104 @@
+@name Blue Winter
+@persist [Mats]:table Props:array I
+@autoupdate
+
+if(first() | dupefinished()) {
+    MatRed = "models/props_combine/metal_combinebridge001"
+    MatRed2 = "models/props_combine/metal_combinebridge001"
+    MatBlack = "spacebuild/sblight5_d"
+    MatBlack2 = "spacebuild/hazard3"
+    MatGray = "sprops/textures/sprops_cfiber1"
+    MatEngine = "spacebuild/fusion2"
+    MatFusion = "spacebuild/fusion2"
+    MatGlass = "spacebuild/glass"
+    MatBlue2 = "phoenix_storms/bluemetal"
+    MatBlue = "models/props_combine/metal_combinebridge001"
+    
+    Mats = table(
+        "models/mandrac/energy/cap_beam_gun.mdl" = array(MatFusion,"",MatBlue,"",MatBlack),
+        "models/slyfo/topless_top.mdl" = array(MatBlack,"",MatBlue,MatBlue2),
+        "models/cerus/modbridge/misc/accessories/acc_radar1.mdl" = array(MatBlue,"",MatBlack,MatBlue2),
+        "models/props_wasteland/cargo_container01.mdl" = array(MatBlue,"",MatBlue,MatBlue2),
+        "models/mandrac/resource_cache/hangar_container.mdl" = array(MatBlack,"",MatBlue,MatBlue2),
+        "models/spacebuild/medbridge2_large_solar_sail.mdl" = array(MatBlack,"",MatBlue,MatEngine,MatBlue,MatEngine,MatBlack2,MatGray,MatEngine),
+        "models/spacebuild/light_combat_corvette.mdl" = array(MatBlack,"",MatEngine,MatBlue,MatEngine,MatBlue,MatBlack2,MatGray,MatBlue),
+        "models/mandrac/resource_cache/hanger_container.mdl" = array(MatBlue,"",MatBlue2,MatBlue),
+        "models/spacebuild/nova/supercarrierbridge.mdl" = array(MatBlue,MatBlack,MatBlue,MatBlue,MatEngine),
+        "models/spacebuild/medbridge2_engineaddon1.mdl" = array(MatBlue,MatBlue,"","",MatEngine),
+        "models/spacebuild/medbridge2_enginehull.mdl" = array(MatBlack,MatBlue,MatBlue,MatEngine),
+        "models/spacebuild/medbridge2_fighterbay2.mdl" = array(MatBlack,"",MatEngine,"",MatBlue),
+        "models/slyfo/thnoramp.mdl" = array(MatBlack,MatBlue2,MatBlue,MatBlue,MatBlue),
+        "models/slyfo/thhangar.mdl" = array(MatBlack,MatBlue2,MatBlue,MatGray),
+        "models/slyfo/cdeck_doublewide.mdl" = array(MatBlack,MatGray,MatBlue,MatBlue,MatEngine),
+        "models/slyfo/cdeck_bow.mdl" = array(MatBlack,MatGray,MatBlue,MatBlue,MatEngine),
+        "models/slyfo/cdeck_single.mdl" = array(MatBlack,MatGray,MatBlue,MatBlue,MatEngine),
+        "models/slyfo/cdeck_doublewideconv.mdl" = array(MatBlack,MatGray,MatBlue,MatBlue,MatEngine),
+        "models/slyfo/combat_cockpit_small.mdl" = array(MatBlack,"",MatBlue,MatBlue),
+        "models/slyfo/matthewenginelong.mdl" = array(MatBlack,"",MatBlue,MatBlue),
+        "models/slyfo/cockpit_lground.mdl" = array(MatBlack,"",MatBlue,MatBlue),
+        "models/slyfo/fdeck_longtop.mdl" = array(MatBlack,"",MatRed,MatRed),
+        "models/slyfo/fdeck_short.mdl" = array(MatBlack,"",MatRed,MatBlack2,MatBlack),
+        "models/slyfo/doublehull.mdl" = array("",MatBlue,MatBlack,MatBlack2),
+        "models/slyfo/doublehullramp.mdl" = array(MatBlack,MatRed,MatBlack,MatRed,MatGray),
+        "models/slyfo/inverthull_ramp.mdl" = array(MatBlack,MatRed,MatBlack,MatGray),
+        "models/slyfo/dwsmooth.mdl" = array(MatBlack,MatRed,"",MatBlack2),
+        "models/slyfo/straighthull.mdl" = array("",MatBlack2,MatBlack,MatBlue),
+        "models/slyfo/deck.mdl" = array(MatBlack,MatRed,MatRed),
+        "models/slyfo/ramp.mdl" = array("",MatBlack2,MatBlack,MatBlue),
+        "models/slyfo/tramp.mdl" = array("","",MatBlack,MatBlack,MatBlack2,MatRed),
+        "models/slyfo/shortnoglass.mdl" = array(MatBlack,MatBlack2,MatBlack,MatRed),
+        "models/slyfo/shortglass.mdl" = array(MatBlack,MatRed,MatBlack,MatBlack),
+        "models/slyfo/longnoglass.mdl" = array(MatBlack,MatRed,MatBlack,MatRed),
+        "models/slyfo/cargoclosed.mdl" = array(MatBlack,MatEngine),
+        "models/slyfo/joint_90short.mdl" = array(MatBlack,MatBlue,MatRed,MatGray),
+        "models/slyfo/doubletrilong.mdl" = array(MatBlack,MatRed,MatBlack,MatRed,MatRed2,MatRed2),
+        "models/slyfo/carrierbay.mdl" = array(MatRed2,"",MatRed,"",MatRed2,MatBlack),
+        "models/slyfo/cargoship.mdl" = array(MatRed,MatEngine,MatBlack,MatRed,MatBlack,"","spacebuild/light"),
+        "models/slyfo/cargoshiphatch.mdl" = array(MatBlack),
+        "models/slyfo_2/engine_sa_dp1_huge3.mdl" = array(MatBlack,"",MatRed,MatEngine,MatRed),
+        "models/slyfo/gallant_class_engine5.mdl" = array(MatBlack,MatGray,MatRed,MatRed,MatEngine),
+        "models/slyfo/gallant_class_engine6.mdl" = array(MatBlack,MatGray,MatRed,MatRed,MatEngine,"",MatRed2),
+        "models/slyfo/gallant_cockpitdoublehuge.mdl" = array(MatBlack,MatRed,MatRed,MatGray),
+        "models/spacebuild/nova/plowbridge.mdl" = array(MatBlack,MatRed,"",MatGlass,MatRed,MatBlack),
+        "models/slyfo/cockpit_smround.mdl" = array(MatBlack,MatGray,MatRed,MatRed),
+        "models/slyfo/doubleclamp_x.mdl" = array(MatBlack,MatRed,MatRed,MatBlack2),
+        "models/sbep_community/d12mbcubconsingle.mdl" = array(MatBlack,MatRed,MatGray,MatRed),
+        "models/spacebuild/nova/med-mac2.mdl" = array(MatGray,"",MatBlack,MatRed),
+        "models/slyfo/frigate1.mdl" = array(MatRed2,MatRed,MatBlack,MatRed,"","",MatEngine),
+        "models/slyfo/cruisercockpit.mdl" = array(MatBlack,MatBlack,MatRed,MatBlack2),
+        "models/slyfo/refinery_large.mdl" = array(MatBlack,MatGray,MatRed2,MatBlack2),
+        "models/slyfo/refinery_small.mdl" = array(MatBlack,MatGray,MatRed2,MatBlack2),
+        "models/slyfo/consolechair.mdl" = array(MatRed,"",MatRed,MatBlack,MatRed,MatRed),
+        "models/slyfo_2/miscequipmentmount.mdl" = array(MatBlack2,MatRed),
+        "models/snakesvx/node_s.mdl" = array(MatRed,""),
+        "models/slyfo/ftl_drive.mdl" = array(MatFusion,MatRed,MatBlack,MatBlack,MatFusion),
+        "models/slyfo/consolescreenbig.mdl" = array(MatBlack,"",MatRed,MatGray),
+        "models/sbep_community/d12proxmine.mdl" = array(MatRed,MatFusion,MatBlack,MatFusion,MatBlack2),
+        "models/sbep_community/d12airscrubber.mdl" = array(MatRed,MatRed,MatBlack,MatGray,"",MatFusion),
+        "models/slyfo_2/acc_food_fooddispensersml.mdl" = array("",MatBlack2,MatRed),
+        "models/props_combine/combine_train02a.mdl" = array(MatRed)
+        )
+        
+    Props = entity():getConstraints()
+    if(Props:count()) {interval(100)}
+    
+    I=1
+}
+else{
+    while( I <= Props:count() & perf()) {
+        local P = Props[I,entity]
+        local A = Mats[P:model(),array]
+        foreach(J,S:string=A) {
+            P:setSubMaterial(J,S)
+        }
+        I++
+    }
+    
+    if( I < Props:count() ) {interval(100)}
+}
+
+
+
+
+
+

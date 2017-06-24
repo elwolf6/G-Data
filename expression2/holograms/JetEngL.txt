@@ -1,0 +1,14 @@
+@name JetEngL
+@inputs 
+@outputs 
+@persist 
+@trigger
+
+JetEngL = holoCreate(2)
+         holoModel(2, "models/slyfo/jetenginelg_mounted.mdl")
+         holoScale(2, vec(4,4,4))
+         holoParent(2,entity())
+         holoAng(2, ang(vec(0,90,-90)))
+         JetEngL:setSubMaterial(3, "sprops/trans/misc/ls_m1")
+         JetEngL:setSubMaterial(2, "spacebuild/body2")
+

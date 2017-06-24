@@ -1,0 +1,10 @@
+@name 
+@inputs 
+@outputs 
+@persist 
+@trigger 
+
+runOnTick(1)
+Bullet = propSpawn("models/props_c17/oildrum001_explosive.mdl", owner():pos() + vec(-20,0,0), 0)
+Bullet:applyForce( Bullet:forward()*10000000*Bullet:mass())
+Bullet:setAlpha(255)

@@ -1,0 +1,98 @@
+@name Thingy of drones
+@inputs Active Fire Target:entity Drone:entity
+@outputs TBearing TElevation AimSpeed Parented Found Bearing Elevation
+@persist MaxElevation MinElevation Drones:array DroneNum Parented
+@persist [Turretwl Turretwl2]:wirelink Found TBearing TElevation AimSpeed Core:entity
+@autoupdate
+interval(100)
+runOnLast(1)
+
+entity():setSubMaterial(2,"phoenix_storms/bluemetal")
+entity():setSubMaterial(1,"models/props_combine/metal_combinebridge001")
+
+if(first()|dupefinished())
+{
+    #THIS TURRET IS LICENSED TO RDA BY NJCORP. DISTRIBUTION TO OTHER FILTHY CADETS IS NOT ALLOWED, BY PENALTY OF SPACE DEATH.
+    
+    #customize these to make the models not clip
+    MaxElevation = 360
+    MinElevation = -20
+    
+    #No Touchy
+    DroneNum = 1
+    TBearing = 0
+    TElevation = 0
+
+    
+    
+    #Yaw Hologram No Touchy
+    holoCreate(1,entity():toWorld(vec(0,0,50)))
+    holoScale(1,vec(1,1,1))
+    holoAng(1,entity():toWorld(ang(0,-90,0)))
+    holoAlpha(1,255)
+    holoModel(1,"models/maxofs2d/cube_tool.mdl")
+    holoParent(1,entity())
+    
+    #Pitch Hologram No Touchy
+    holoCreate(2,entity():toWorld(vec(0,45,85)))
+    holoScale(2,vec(1,1,1))
+    holoColor(2,vec(91,91,100))
+    holoAng(2,holoEntity(1):toWorld(ang(0,0,0)))
+    holoAlpha(2,255)
+    holoModel(2,"models/maxofs2d/cube_tool.mdl")
+    holoParent(2,1) # this is the holo that acts as an axis
+    }
+
+
+#Below this point no touchy
+
+
+            Drone:setPos(holoEntity(2):toWorld(vec(215,62,0))) #Edit this to place them in the barrels
+            Drone:setAng(holoEntity(2):toWorld(ang(0,0,0)))
+            Turretwl = Drone:wirelink() 
+            DroneNum++
+if(Active&Parented)
+{
+    
+    AimPos=Target:boxCenterW()
+    Bearing = holoEntity(1):bearing(AimPos)   
+    ClampedBearing = clamp(Bearing,-AimSpeed,AimSpeed)
+    TBearing=TBearing+ClampedBearing
+    Elevation = holoEntity(2):elevation(AimPos)
+    ClampedElevation = clamp(Elevation,-AimSpeed,AimSpeed)
+    TElevation=clamp(TElevation+ClampedElevation,MinElevation,MaxElevation)
+    
+    
+    holoAng(1,entity():toWorld(ang(0,-90-TBearing,0)))
+    holoAng(2,holoEntity(1):toWorld(ang(0-TElevation,0,0)))
+    
+    Turretwl["Target Position", vector] = AimPos
+    Turretwl2["Target Postion", vector] = AimPos        
+    
+    if(Bearing<10&Elevation<10)
+    {
+        Turretwl["Fire", number] = Fire
+        Turretwl2["Fire", number] = Fire
+    }
+    else
+    {
+        Turretwl["Fire", number] = 0
+        Turretwl2["Fire", number] = 0
+    }
+}
+else
+{
+    Turretwl["Fire", number] = 0
+    Turretwl2["Fire", number] = 0
+}
+
+
+
+if(last())
+{
+    foreach(I,Drone:entity=Drones)
+    {
+        Drone:deparent()
+        Drone:setAlpha(255)
+    }
+}

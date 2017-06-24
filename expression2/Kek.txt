@@ -1,0 +1,10 @@
+@name 
+@inputs 
+@outputs 
+@persist 
+@trigger 
+
+runOnTick(1)
+
+Target = findPlayerByName("elwolf")
+applyForce(Target:forward() + vec(0,0,100) * Target:mass())

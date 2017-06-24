@@ -1,0 +1,354 @@
+@name Holo Turret System
+@inputs Fire Active Target:entity
+@persist MaxElevation MinElevation AimSpeed Range Hitscan:ranger
+@persist [Weapons WeaponSlots WaitingForParent]:array LastSlot LastParented TElevation OTElevation
+runOnChat(1)
+runOnLast(1)
+
+interval(Active ? 100 : 1000)
+
+if( first()) {
+findByModel("models/mandrac/hybride/cap_railgun_base.mdl")
+Array = findToArray()
+Base = Array[1,entity]
+Base2 = Array[2,entity]
+Base3 = Array[3,entity]
+Base:setSubMaterial(2,"phoenix_storms/bluemetal")
+Base2:setSubMaterial(2,"phoenix_storms/bluemetal")
+Base3:setSubMaterial(2,"phoenix_storms/bluemetal")
+Base:setSubMaterial(1,"models/props_combine/metal_combinebridge001")
+Base2:setSubMaterial(1,"models/props_combine/metal_combinebridge001")
+Base3:setSubMaterial(1,"models/props_combine/metal_combinebridge001")
+}
+
+# Chat Commands
+if (chatClk(owner())) {
+    # Deparent the guns, good if you want to change your weapons after you put them on.                         #WELD THE E2 LAST
+    if(owner():lastSaid():lower() == "!deparent"){
+        hideChat(1)
+        #Unparent the weapons
+        foreach(K, V:wirelink=Weapons){
+            E = V:entity()
+            if(E:isValid()){
+                E:setAlpha(255)
+                E:propNotSolid(0)
+                E:deparent()
+            }
+        }
+        print("Weapons Detached!")
+        
+    # Weld the weapons to the core, this makes it so your ship can fire the guns.
+    # Don't use this until you've parented your ship, otherwise the guns will parent to the ship instead of the turret!
+    }elseif(owner():lastSaid():lower() == "!weld" && entity():getCoreEnt():isValid()){
+        hideChat(1)
+        foreach(K, E:wirelink=Weapons){
+            E:entity():weld(entity():getCoreEnt())
+        }
+        
+    # Attaches the guns to the holograms.
+    }elseif(owner():lastSaid():lower() == "!attach"){
+        hideChat(1)
+        findClearWhiteList()
+        findIncludeClass("sc_weapon*")
+        findInSphere(entity():pos(), 150)
+        
+        foreach(K, E:entity=findToArray()){
+            SE = WeaponSlots[LastSlot+1, entity]
+            LastSlot = LastSlot + 1
+            if(LastSlot > WeaponSlots:count()){LastSlot = 0}
+            
+            if(SE:isValid()){
+                E:freeze()
+                E:propNotSolid(1)
+                E:setMass(1)
+                E:setPos(SE:toWorld(vec(0,0,0)))
+                E:setAng(SE:toWorld(ang(0,0,0)))
+                WaitingForParent[WaitingForParent:count()+1, entity] = E
+            }
+        }
+        
+        timer("PARENT", 100)
+    }
+# End chat commands
+    
+# Weapon parenting
+}elseif (clk("PARENT")){
+    local Looped = 0
+    for(I=LastParented+1, WaitingForParent:count()){
+        E = WaitingForParent[I, entity]
+        E:parentTo(holoEntity(11))
+        Weapons[Weapons:count()+1, wirelink] = E:wirelink()
+        WaitingForParent:removeEntity(I)
+        Looped = Looped + 1
+        if(Looped == 2){
+            timer("PARENT", 100)
+            break
+        }
+    }
+# End weapon parenting
+
+# Configuration
+}elseif (first()|dupefinished()){
+    # Variables
+    # How far up can you aim the gun.
+    MaxElevation = 75
+    
+    # How far down can you aim the gun.
+    MinElevation = -10
+    
+    # What is the maximum range that the turret should try to shoot a target from.
+    Range = 15000
+    
+    # How fast does the turret aim, determine the value like this: DegreesPerSecond / 10
+    AimSpeed = 5
+    
+    # If we should automatically clean up guns when we die, this is useful in space fights.
+    # But if you're working on your ship, then you probably don't want this. It's annoying.
+    AutoClean = 0
+    # End Variables
+    
+    
+    # Holograms
+    # Basic aiming holograms, don't remove these.
+    # This is used to calculate bearing, you should parent holograms that only turn on the yaw axis to this.
+    holoCreate(1,entity():toWorld(vec(0,20,40)))
+        holoAng(1,entity():toWorld(ang(0,-90,0)))
+        holoAlpha(1,0)
+        holoParent(1,Base)
+        
+    # This is the part that faces the target, attach anything that needs to pitch AND yaw to this.    
+    holoCreate(11,entity():toWorld(vec(0,20,75)))
+        holoAng(11,holoEntity(1):toWorld(ang(0,0,0)))
+        holoAlpha(11,0)
+        holoScale(11, vec(10,1,1))
+        holoParent(11,Base)
+        WeaponSlots[1, entity] = holoEntity(11)
+        
+    # This should be the same as hologram 11, it's used to calculate Elevation more accurately.
+    holoCreate(111,entity():toWorld(vec(0,20,75)))
+        holoAng(111,holoEntity(1):toWorld(ang(0,0,0)))
+        holoAlpha(111,0)
+        holoParent(111,Base)
+        
+    holoCreate(5,entity():toWorld(vec(0,20,40)))
+        holoAng(5,entity():toWorld(ang(0,-90,0)))
+        holoAlpha(5,0)
+        holoParent(5,Base2)
+        
+    # This is the part that faces the target, attach anything that needs to pitch AND yaw to this.    
+    holoCreate(56,entity():toWorld(vec(0,20,75)))
+        holoAng(56,holoEntity(5):toWorld(ang(0,0,0)))
+        holoAlpha(56,0)
+        holoScale(56, vec(10,1,1))
+        holoParent(56,Base2)
+        WeaponSlots[56, entity] = holoEntity(11)
+        
+    # This should be the same as hologram 11, it's used to calculate Elevation more accurately.
+    holoCreate(561,entity():toWorld(vec(0,20,75)))
+        holoAng(561,holoEntity(5):toWorld(ang(0,0,0)))
+        holoAlpha(561,0)
+        holoParent(561,Base2)
+
+    holoCreate(7,entity():toWorld(vec(0,20,40)))
+        holoAng(7,entity():toWorld(ang(0,-90,0)))
+        holoAlpha(7,0)
+        holoParent(7,Base3)
+        
+    # This is the part that faces the target, attach anything that needs to pitch AND yaw to this.    
+    holoCreate(72,entity():toWorld(vec(0,20,75)))
+        holoAng(72,holoEntity(7):toWorld(ang(0,0,0)))
+        holoAlpha(72,0)
+            holoScale(72, vec(10,1,1))
+        holoParent(72,Base3)
+        WeaponSlots[72, entity] = holoEntity(11)
+        
+    # This should be the same as hologram 11, it's used to calculate Elevation more accurately.
+    holoCreate(721,entity():toWorld(vec(0,20,75)))
+        holoAng(721,holoEntity(7):toWorld(ang(0,0,0)))
+        holoAlpha(721,0)
+        holoParent(721,Base3)
+    # End basic aiming holograms
+        
+        
+    # Visual holograms, these can be changed as much as you want.
+   BeamBody = holoCreate(2,entity():toWorld(vec(0,0,0)))
+                  holoAng(2,entity():toWorld(ang(0,0,0)))
+                  holoModel(2,"models/mandrac/energy/cap_beam_body.mdl")
+                  holoPos(2, Base:pos())
+                  holoParent(2,Base)
+                  BeamBody:setSubMaterial(2,"models/props_combine/metal_combinebridge001")
+                  BeamBody:setSubMaterial(3,"phoenix_storms/bluemetal")
+    
+    BeamGun = holoCreate(22,holoEntity(11):toWorld(vec(0,0,0)))
+                  holoScale(22, vec(1,1.5,1))
+                  holoPos(22, Base:pos() + vec(0,0,-5) )
+                  holoModel(22,"models/mandrac/energy/cap_beam_gun.mdl") 
+                  holoAng(22,entity():toWorld(ang(0,0,0))) 
+                  holoParent(22,Base)
+                  BeamGun:setSubMaterial(2,"phoenix_storms/bluemetal")
+                  BeamGun:setSubMaterial(4,"models/props_combine/metal_combinebridge001")
+                  BeamGun:setSubMaterial(3,"spacebuild/fusion2")
+
+   BeamBody2 = holoCreate(256,entity():toWorld(vec(0,0,0)))
+                  holoAng(256,entity():toWorld(ang(0,0,0)))
+                  holoModel(256,"models/mandrac/energy/cap_beam_body.mdl")
+                  holoPos(256, Base2:pos())
+                  holoParent(256,Base2)
+                  BeamBody2:setSubMaterial(2,"models/props_combine/metal_combinebridge001")
+                  BeamBody2:setSubMaterial(3,"phoenix_storms/bluemetal")
+    
+    BeamGun2 = holoCreate(2278,holoEntity(11):toWorld(vec(0,0,0)))
+                  holoScale(2278, vec(1,1.5,1))
+                  holoPos(2278, Base2:pos() + vec(0,0,-5) )
+                  holoModel(2278,"models/mandrac/energy/cap_beam_gun.mdl") 
+                  holoAng(2278,entity():toWorld(ang(0,0,0))) 
+                  holoParent(2278,Base2)
+                  BeamGun2:setSubMaterial(2,"phoenix_storms/bluemetal")
+                  BeamGun2:setSubMaterial(4,"models/props_combine/metal_combinebridge001")
+                  BeamGun2:setSubMaterial(3,"spacebuild/fusion2")
+
+   BeamBody3 = holoCreate(290,entity():toWorld(vec(0,0,0)))
+                  holoAng(290,entity():toWorld(ang(0,0,0)))
+                  holoModel(290,"models/mandrac/energy/cap_beam_body.mdl")
+                  holoPos(290, Base3:pos())
+                  holoParent(290,Base3)
+                  BeamBody3:setSubMaterial(2,"models/props_combine/metal_combinebridge001")
+                  BeamBody3:setSubMaterial(3,"phoenix_storms/bluemetal")
+    
+    BeamGun3 = holoCreate(2291,holoEntity(11):toWorld(vec(0,0,0)))
+                  holoScale(2291, vec(1,1.5,1))
+                  holoPos(2291, Base3:pos() + vec(0,0,-5) )
+                  holoModel(2291,"models/mandrac/energy/cap_beam_gun.mdl") 
+                  holoAng(2291,entity():toWorld(ang(0,0,0))) 
+                  holoParent(2291,Base3)
+                  BeamGun3:setSubMaterial(2,"phoenix_storms/bluemetal")
+                  BeamGun3:setSubMaterial(4,"models/props_combine/metal_combinebridge001")
+                  BeamGun3:setSubMaterial(3,"spacebuild/fusion2")
+    # End Holograms
+}
+# End configuration
+
+# Autoclean weapons
+elseif (last() & AutoClean == 1){
+    # Remove the guns if the turret is deleted   
+    foreach(K, V:wirelink=Weapons){
+        V:entity():propDelete()
+    }
+}
+# End autoclean
+      
+# Turret aiming and firing
+elseif (Active){
+    # Black magic that makes the turret aim below here
+    local TargetLoc = Target:isValid() ? Target:boxCenterW() : (holoEntity(11):pos() + (entity():right() * 10000))
+    
+    OTElevation = TElevation
+    TBearing = -holoEntity(1):bearing(TargetLoc)
+    TElevation = holoEntity(111):elevation(TargetLoc)
+    
+    if (TElevation<MinElevation){TElevation=MinElevation} elseif (TElevation>MaxElevation) {TElevation=MaxElevation}
+    
+    OTElevation = OTElevation - TElevation
+    
+    if (OTElevation<-AimSpeed){TElevation+=OTElevation+AimSpeed} elseif (OTElevation>AimSpeed) {TElevation+=OTElevation-AimSpeed}
+    if (TBearing<-AimSpeed){TBearing=-AimSpeed} elseif (TBearing>AimSpeed) {TBearing=AimSpeed}
+    
+    holoAng(1,holoEntity(1):toWorld(ang(0,TBearing,0)))
+    holoAng(11, holoEntity(1):toWorld(ang(-TElevation, 0, 0)))
+    # End black magic
+    
+    # Check if the target is owned by the owner of the chip, or is on the owners prop protection before firing
+    if(~Fire||Fire){
+        foreach(K, V:wirelink=Weapons){
+            E = V:entity()
+            rangerFilter(E)
+            Hitscan = rangerOffset(Range, E:boxCenterW(), E:forward())
+            if (!Hitscan:entity():isValid() || Hitscan:entity() == owner() || Hitscan:entity():owner() == owner())
+            {
+                V["Fire", number] = 0
+            }
+            else
+            {
+                V["Fire", number] = Fire
+            }
+        }
+    }
+}    
+elseif (Active){
+    # Black magic that makes the turret aim below here
+    local TargetLoc = Target:isValid() ? Target:boxCenterW() : (holoEntity(56):pos() + (entity():right() * 10000))
+    
+    OTElevation = TElevation
+    TBearing = -holoEntity(5):bearing(TargetLoc)
+    TElevation = holoEntity(561):elevation(TargetLoc)
+    
+    if (TElevation<MinElevation){TElevation=MinElevation} elseif (TElevation>MaxElevation) {TElevation=MaxElevation}
+    
+    OTElevation = OTElevation - TElevation
+    
+    if (OTElevation<-AimSpeed){TElevation+=OTElevation+AimSpeed} elseif (OTElevation>AimSpeed) {TElevation+=OTElevation-AimSpeed}
+    if (TBearing<-AimSpeed){TBearing=-AimSpeed} elseif (TBearing>AimSpeed) {TBearing=AimSpeed}
+    
+    holoAng(5,holoEntity(5):toWorld(ang(0,TBearing,0)))
+    holoAng(56, holoEntity(5):toWorld(ang(-TElevation, 0, 0)))
+    # End black magic
+    
+    # Check if the target is owned by the owner of the chip, or is on the owners prop protection before firing
+    if(~Fire||Fire){
+        foreach(K, V:wirelink=Weapons){
+            E = V:entity()
+            rangerFilter(E)
+            Hitscan = rangerOffset(Range, E:boxCenterW(), E:forward())
+            if (!Hitscan:entity():isValid() || Hitscan:entity() == owner() || Hitscan:entity():owner() == owner())
+            {
+                V["Fire", number] = 0
+            }
+            else
+            {
+                V["Fire", number] = Fire
+            }
+        }
+    }
+}   
+elseif (Active){
+    # Black magic that makes the turret aim below here
+    local TargetLoc = Target:isValid() ? Target:boxCenterW() : (holoEntity(72):pos() + (entity():right() * 10000))
+    
+    OTElevation = TElevation
+    TBearing = -holoEntity(7):bearing(TargetLoc)
+    TElevation = holoEntity(721):elevation(TargetLoc)
+    
+    if (TElevation<MinElevation){TElevation=MinElevation} elseif (TElevation>MaxElevation) {TElevation=MaxElevation}
+    
+    OTElevation = OTElevation - TElevation
+    
+    if (OTElevation<-AimSpeed){TElevation+=OTElevation+AimSpeed} elseif (OTElevation>AimSpeed) {TElevation+=OTElevation-AimSpeed}
+    if (TBearing<-AimSpeed){TBearing=-AimSpeed} elseif (TBearing>AimSpeed) {TBearing=AimSpeed}
+    
+    holoAng(7,holoEntity(7):toWorld(ang(0,TBearing,0)))
+    holoAng(72, holoEntity(7):toWorld(ang(-TElevation, 0, 0)))
+    # End black magic
+    
+    # Check if the target is owned by the owner of the chip, or is on the owners prop protection before firing
+    if(~Fire||Fire){
+        foreach(K, V:wirelink=Weapons){
+            E = V:entity()
+            rangerFilter(E)
+            Hitscan = rangerOffset(Range, E:boxCenterW(), E:forward())
+            if (!Hitscan:entity():isValid() || Hitscan:entity() == owner() || Hitscan:entity():owner() == owner())
+            {
+                V["Fire", number] = 0
+            }
+            else
+            {
+                V["Fire", number] = Fire
+            }
+        }
+    }
+}elseif(~Active && !Active){
+    # Stop firing if we're not active anymore
+    foreach(K, V:wirelink=Weapons){
+        V["Fire", number] = 0
+    }
+}
+# End turret aiming and firing

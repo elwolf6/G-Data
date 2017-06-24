@@ -1,0 +1,14 @@
+@name Auto Solars
+@inputs
+@outputs 
+@persist Solar:entity 
+@trigger
+
+runOnTick(1)
+
+Solar = entity():isWeldedTo()
+
+if(dupefinished()|first()){
+    AngSun=lsGetSunDirection():toAngle()-ang(90,0,0)
+    Solar:setAng(AngSun)
+}

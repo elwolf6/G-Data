@@ -1,0 +1,256 @@
+@name Destiny Small Cannon
+@inputs Active Fire Target:entity 
+@outputs Fire AimPos:vector Step Index 
+@persist X MaxElevation MinElevation MaxBearing MinBearing Guns:array Parts:array Step GunNum Parented
+@persist Turretwl:wirelink Turretwl2:wirelink Found  Range Hitscan:ranger Status Length TBearing TElevation AimSpeed
+@model models/mandrac/hybride/cap_railgun_base.mdl
+interval(100)
+runOnLast(1)
+if(first()|dupefinished())
+{
+    MaxElevation = 90
+    MinElevation = 0
+    MaxBearing = 180
+    MinBearing = -180
+    Range = 15000
+    X=100
+    GunNum = 1
+    Status = 0
+    TBearing = 0
+    TElevation = 0
+    #[
+    Official Turret Stats
+Fighter
+Weapon Mounts: 2
+Minimum Elevation: -25
+Maximum Elevation: 45
+Aiming Speed: 70 deg/s
+Frigate
+Weapon Mounts: 1
+Minimum Elevation: -10
+Maximum Elevation: 75
+Aiming Speed: 50 deg/s
+Cruiser
+Weapon Mounts: 4
+Minimum Elevation: -10
+Maximum Elevation: 45
+Aiming Speed: 20 deg/s
+Battleship
+Weapon Mounts: 2
+Minimum Elevation: -5
+Maximum Elevation: 30
+Aiming Speed: 12.5 deg/s
+Capital
+Weapon Mounts: 3
+Minimum Elevation: -5
+Maximum Elevation: 25
+Aiming Speed: 7.5 deg/s
+]#
+    
+    
+    
+ #Holograms
+        holoCreate(1,entity():toWorld(vec(0,0,6)))
+            holoScale(1,vec(1,1,1))
+            holoAng(1,entity():toWorld(ang(0,0,0)))
+            holoAlpha(1,255)
+            holoModel(1,"models/mandrac/hybride/cap_railgun_body.mdl")
+            holoParent(1,entity())
+            
+             holoCreate(3,entity():toWorld(vec(0,0,20)))
+                    holoScale(3,vec(1,1,1))
+                    holoColor(3,vec(91,91,100))
+                    holoAng(3,holoEntity(1):toWorld(ang(0,0,0)))
+                    holoAlpha(3,0)
+                    holoParent(3,entity()) 
+            
+                holoCreate(11,entity():toWorld(vec(10,0,25)))
+                    holoScale(11,vec(1,1,1))
+                    holoColor(11,vec(91,91,100))
+                    holoAng(11,holoEntity(1):toWorld(ang(0,0,0)))
+                    holoAlpha(11,255)
+                    #holoModel(11,"models/madman07/small_cannon/small_turn.mdl")
+                    holoParent(11,21) # this is the holo that acts as an axis
+                
+                    holoCreate(2,entity():toWorld(vec(0,0,25)))
+                        holoScale(2,vec(1,1.5,1))
+                        #holoColor(2,vec(91,91,100))
+                        holoAlpha(2,255)
+                        holoModel(2,"models/mandrac/hybride/cap_railgun_gun.mdl") #here you put the holo thats gonna be representing the "gun"
+                        holoAng(2,holoEntity(11):toWorld(ang(0,0,0))) 
+                        holoParent(2,1) 
+                        
+                        holoCreate(20,holoEntity(11):toWorld(vec(-10,0,0)))
+                        holoParent(20,entity())
+                        holoCreate(21,holoEntity(11):toWorld(vec(140,0,40)))
+                        holoParent(21,holoEntity(2))
+                        holoAlpha(21,0)
+    
+    
+    
+    
+    
+}
+
+
+
+if(Active == 1&!Found)
+{
+
+    Linking = 1
+    #[findIncludeClass("Autocannon")
+    findIncludeClass("litepulsecannon")]#
+    findIncludeClass("sc_weapon_base")
+    findIncludeClass("sc_weapon_beam")
+    findIncludeClass("sc_weapon_missile")
+    findInSphere(entity():pos(),100)
+    Guns = findToArray()
+    Found = 1
+    foreach(I,Gun:entity=Guns)
+    {
+        Gun:deparent()
+        Gun:unWeld()
+    }
+    timer("placeguns",100)  
+
+}
+
+if(clk("placeguns"))
+{
+    foreach(I,Gun:entity=Guns)
+    {
+        Gun:deparent()
+        Gun:unWeld()
+        Gun2=Gun
+        if(GunNum == 1)
+        {
+            Gun:setPos(entity():toWorld(vec(80,0,33)))
+            Gun:setAng(entity():toWorld(ang(0,0,0)))
+            Gun:setAlpha(0)
+            Gun:makeWirelink()
+            Turretwl = Gun:getWirelink() 
+            GunNum++
+        }
+        elseif(GunNum == 2)
+        {
+            Gun2:setPos(entity():toWorld(vec(100,0,18)))
+            Gun2:setAng(entity():toWorld(ang(0,0,0)))
+            Gun2:setAlpha(0)
+            Gun2:makeWirelink()
+            Turretwl2 = Gun2:getWirelink() 
+        }
+    }
+    timer("parentguns",100)  
+}
+
+
+if(clk("parentguns"))
+{
+    foreach(I,Gun:entity=Guns)
+    {
+        Gun:parentTo(holoEntity(2))
+    }
+                findIncludePlayerProps("njits23")
+                findByClass("ship_core")
+                Part=find()
+                SigRad=Part:getSigRad()/39.3700787
+                if(SigRad<30)
+                {
+                    setName("Turret Mode:fighter")
+                    AimSpeed=7
+                }
+                elseif(SigRad<60)
+                {
+                    setName("Turret Mode:frigate")#frigate
+                    AimSpeed=5
+                }
+                elseif(SigRad<120)
+                {
+                    setName("Turret Mode:cruiser and battlecruiser")#cruiser and battlecruiser
+                    AimSpeed=2
+                }
+                elseif(SigRad<180)
+                {
+                    setName("Turret Mode:Battleship")#Battleship
+                    AimSpeed = 1.25
+                }
+                else
+                {
+                    setName("Turret Mode:capital")#capital
+                    AimSpeed = 0.75
+                } 
+
+    Parented = 1
+}
+    
+
+
+if (Active&Parented){
+    
+        AimPos=Target:boxCenterW()
+
+
+
+        Bearing = holoEntity(2):bearing(AimPos)
+        TElevation = holoEntity(20):elevation(AimPos)
+        
+    
+    if (Bearing<-AimSpeed){Bearing=-AimSpeed} elseif (Bearing>AimSpeed) {Bearing=AimSpeed}
+    TBearing=TBearing+Bearing
+    #[if (Elevation<-AimSpeed){Elevation=-AimSpeed} elseif (Elevation>AimSpeed) {Elevation=AimSpeed}
+    TElevation=TElevation+Elevation]#
+    if (TElevation<MinElevation){TElevation=0}
+    elseif (TElevation>MaxElevation) {TElevation=0} 
+    #elseif(TBearing<MinBearing){TBearing=0} 
+    #elseif(TBearing>MaxBearing){TBearing=0}
+    
+
+    holoAng(1,entity():toWorld(ang(0,0-TBearing,0)))
+    holoAng(11,holoEntity(1):toWorld(ang(0,90,0-TElevation)))
+    holoAng(2,holoEntity(11):toWorld(ang(0,-90,0)))
+    
+    Turretwl["Target Position", vector] = AimPos
+    Turretwl2["Target Postion", vector] = AimPos        
+    
+    #Check if the target is owned by the owner of the chip, or is on the owners prop protection before firing
+    rangerFilter(Turretwl:entity())
+    Hitscan = rangerOffset(Range, holoEntity(21):pos(), holoEntity(21):forward())
+    if(Hitscan:entity():owner() == owner() | TElevation == 0)
+    {
+        Turretwl["Fire", number] = 0
+        Turretwl2["Fire", number] = 0
+        Firegun = 0
+    }
+    else #if (Hitscan:entity():owner() == Target:owner())
+    {
+        if(Turretwl["Overload", number] > 0.95|Turretwl["Overload", number] > 0.95)
+        {
+            Turretwl["Fire", number] = 0
+            Turretwl2["Fire", number] = 0
+            Firegun = 0
+        }
+        else
+        {
+            Turretwl["Fire", number] = Fire
+            Turretwl2["Fire", number] = Fire
+            
+            Firegun = Fire
+            if(Fire)
+            {
+                holoAnim(2,(Status ? "firetop" : "firebottom"))
+                Status = !Status 
+            }
+        }       
+    }
+}
+
+
+
+if(last())
+{
+    foreach(I,Gun:entity=Guns)
+    {
+        Gun:deparent()
+        Gun:setAlpha(255)
+    }
+}

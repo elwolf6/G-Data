@@ -1,0 +1,234 @@
+@name Chaperone System
+@inputs 
+@outputs 
+@persist Interval Range
+@persist [Core Parent]:entity 
+@persist [Dims Dirs Bounds]:array
+@trigger 
+
+if(duped() | dupefinished()) {reset()}
+if (first()) {
+    
+    function number vector:sum() {
+    #Using to return the only non-zero component of the Vector
+        return This:x() + This:y() + This:z()
+    }
+    
+    function vector vector:invert() {
+        return vec(1) - positive(This)
+    }
+    
+    function void onInit() {
+        print("Ship Dimensions - L: " + round(Dims[1,number] + Dims[2,number]) + ", W: " + round(Dims[3,number] + Dims[4,number]) + ", H: " + round(Dims[5,number] + Dims[6,number]))
+        timer("removebox",3000)
+        timer("parentcheck",200)
+    }
+    
+    function array entity:getCorners(LocalTo:entity) {
+    #Returns an array containing vectors local to the given Entity for every corner of the prop's bounding box
+        local Center = This:boxCenter()
+        local Box = This:boxSize()/2
+        local Ret = array()
+        for(I=0, 7) {
+            local Dir = vec(-1) + vec( (I && 1<<2)!= 0 , (I && 1<<1)!= 0 , (I && 1<<0)!= 0 )*2
+            Ret:pushVector(LocalTo:toLocal(This:toWorld(Center + Box*Dir)))
+        }
+        return Ret
+    }
+    
+    function array getBBCorners() {
+    #Returns an array containing world vectors of each corner of the ship's bounding box
+        local Center = vec(Dims[1,number] - Dims[2,number],Dims[3,number] - Dims[4,number], Dims[5,number] - Dims[6,number])/2
+        #holoCreate(100,Core:toWorld(Center),vec(0.5,8,0.5),Core:angles())
+        local Box = vec(Dims[1,number] + Dims[2,number],Dims[3,number] + Dims[4,number], Dims[5,number] + Dims[6,number])/2
+        local Ret = array()
+        for(I=0, 7) {
+            local Dir = vec(-1) + vec( (I && 1<<2)!= 0 , (I && 1<<1)!= 0 , (I && 1<<0)!= 0 )*2
+            Ret:pushVector(Core:toWorld(Center + Box*Dir))
+        }
+        return Ret
+    }
+    
+    function void drawBoundingBox() {
+    #Displays the bounding box for debug purposes
+        local Centre = vec(Dims[1,number] - Dims[2,number],Dims[3,number] - Dims[4,number], Dims[5,number] - Dims[6,number])
+        local Size = vec(Dims[1,number] + Dims[2,number],Dims[3,number] + Dims[4,number], Dims[5,number] + Dims[6,number])
+        
+        if(!holoEntity(10)) {
+            holoCreate(10)
+            holoAng(10,Core:toWorld(ang()))
+            holoParent(10,Core)
+            holoAlpha(10,100)
+            holoColor(10,vec(0,255,0))
+        }
+        holoPos(10,Core:toWorld(Centre/2))
+        holoScaleUnits(10,Size)
+    }
+    
+    function void array:getBoundingBox(N) {
+        while(N<=This:count() && perf(95)) {
+            local E = This[N,entity]
+            local Corners = E:getCorners(Core)
+            foreach(I,D:vector=Dirs) {
+                foreach(J,C:vector=Corners) {
+                    local Length = (C*D):sum()
+                    if(Length > Dims[I,number]) {
+                        Dims[I,number] = Length
+                    }
+                }
+            }
+            N++
+        }
+        if(N < This:count()) {
+            timer(10,1,"boundingBox","getBoundingBox(r:n)",This,N)
+        }
+        else {
+            onInit()
+        }
+        drawBoundingBox()
+    }
+    
+    function vector array:getFarthestCorner(Dir:vector) {
+        local Ret = Core:toWorld(vec(Dims[1,number] - Dims[2,number],Dims[3,number] - Dims[4,number], Dims[5,number] - Dims[6,number])/2)
+        foreach(I,C:vector=This) {
+            #print("D: " + Dir + ", W: " + C + ", P: " + (C*Dir))
+            if((C*Dir):sum() > (Ret*Dir):sum()) {
+                Ret = C
+            }
+        }
+        #print("Chosen: " + Ret)
+        return Ret
+    }
+    
+    ## Writen by Mouldy (Taco)
+    function number getBoundary(Direction:vector) {
+        local MyIncrement = 4096
+        local StartingVec = vec()
+        while(MyIncrement > 20)
+        {
+            if(!(StartingVec+Direction*MyIncrement):isInWorld())
+            {
+                MyIncrement = MyIncrement/2
+            }
+            else
+            {
+                StartingVec = StartingVec + Direction*MyIncrement
+            }
+        }
+        return StartingVec:length()
+    }
+    
+    function array getBounds() {
+        local B = array()
+        foreach(I,D:vector=Dirs) {
+            B[I,number] = getBoundary(D)
+        }
+        return B
+    }
+    
+    function void toggleActive(N) {
+        switch(N) {
+            case 0,
+                foreach(I,D:vector=Dirs) {
+                    holoDelete(I)
+                }
+                break
+            case 1,
+                
+                break
+        }
+    }
+    
+    # Customisable Variables #
+    Interval = 333
+    Range = 5000
+    
+    Dirs = array(vec(1,0,0),vec(-1,0,0),vec(0,1,0),vec(0,-1,0),vec(0,0,1),vec(0,0,-1))
+    Dims = array(0,0,0,0,0,0)
+    Bounds = getBounds()
+    print(Bounds)
+    
+    Core = entity():isWeldedTo():getCoreEnt()
+    
+    Props = entity():getConstraints()
+    Props:getBoundingBox(1)
+    
+}
+elseif(clk("active")) {
+
+    Corners = getBBCorners()
+    
+    foreach(I,D:vector=Dirs) {
+        local Corner = Corners:getFarthestCorner(D)
+        local Bound = Bounds[I,number]
+        local Distance = Bound - (Corner*D):sum()
+        
+        #holoCreate(10+I,Corner,vec(0.5)*D:sum()*( Distance < Range ? 3 : 1 ),Core:angles(),positive(vec(255)*D))
+        #holoParent(10+I,Core)
+        
+        #local Pos = Corner*(D:invert()) + (Bound*D)
+        #print("Dir: " + round(D) + ", Dist: " + round(Distance) + ", C: Corner: " + round(Corner) + ", Pos: Corner - " + round(Corner*D) + " + " + round(Bound*D) + " = " + round(Pos))
+        
+        if(Distance < Range) {
+            local Pos = Corner*(D:invert()) + (Bound*D)
+            local Scale = 30
+            local Ang = D:toAngle() + ang(90,0,0)
+            local BoxCenterOff = vec(-71.220627,71.175034,1.744814)
+            if(!holoEntity(I)) {
+                holoCreate(I)
+                holoAng(I,Ang)
+                holoScale(I,vec(Scale))
+                holoColor(I,positive(vec(255)*D))
+                holoModel(I,"models/props_phx/construct/windows/window4x4.mdl")
+                holoMaterial(I,"models/wireframe")
+                foreach(J,P:entity=players()) {
+                    if(P!=Core:owner()) { holoVisible(I,P,0) }
+                }
+            }
+            holoPos(I,Pos - (BoxCenterOff*Scale):rotate(Ang))
+            holoMaterial(I,"models/wireframe")
+        }
+        else{
+            holoDelete(I)
+        }
+    }
+    
+    if(!Parent) {
+        timer("parentcheck",10)
+        toggleActive(0)
+    }
+    elseif(Parent:isFrozen()) {
+        timer("inactive",10)
+        toggleActive(0)
+    }
+    else {
+        timer("active",Interval)
+    }
+}
+elseif(clk("inactive")) {
+    if(!Parent) {
+        timer("parentcheck",10)
+    }
+    elseif(!Parent:isFrozen()) {
+        timer("active",10)
+        toggleActive(1)
+    }
+    else {
+        timer("inactive",1000)
+    }
+}
+elseif(clk("parentcheck")) {
+    if(Parent) {
+        timer("inactive",10)
+    }
+    elseif(Core:parent()) {
+        Parent = Core:parent()
+        timer("inactive",10)
+    }
+    else {
+        timer("parentcheck",4000)
+    }
+}
+elseif(clk("removebox")) {
+    holoDelete(10)
+}

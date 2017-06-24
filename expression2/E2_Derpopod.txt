@@ -1,0 +1,57 @@
+@name E2 Derpopod
+@inputs Pod:wirelink [Forward]:number [Backward]:number [Up]:number [Down]:number Ship:entity [Level]:number
+@persist Driver:entity
+@outputs 
+@trigger 
+
+runOnTick(1)
+
+runOnKeys(Driver,1)
+
+RollYaw = 1
+AngMult = ang(6,6,6)
+
+#Should the Free Look key act as a Look At button? Defaults to 0
+FreeLookIsLookAt = 0
+
+Ship:sbSetGravityOverride(1)
+Ship:propGravity(0)
+
+Driver = findPlayerByName("elwolf")
+
+if( Forward == 1 ) {
+    if( owner():inVehicle() ) {
+        Ship:applyForce( Ship:forward()*100*Ship:mass())
+    }
+}
+
+elseif( Backward == 1 ) {
+    if( owner():inVehicle() ) {  
+        Ship:applyForce( -Ship:forward()*100*Ship:mass())
+    }
+}
+
+elseif( Up == 1 ) {
+    if( owner():inVehicle() ) {
+        Ship:applyForce( vec(0,0,100)*Ship:mass())
+    }
+}
+
+elseif( Down == 1 ) {
+    if( owner():inVehicle() ) {
+        Ship:applyForce( vec(0,0,-100)*Ship:mass())
+    }
+}
+
+elseif( Level == 1 ) {
+    if( Driver:inVehicle() ) {
+        Ship:unFreeze()
+        Ship:setAng( ang(vec(0,0,0)) + Ship:forward():toAngle())
+    }
+}
+
+#Thingy that makes the ship turn where your mouse is
+
+elseif( owner():inVehicle() ) {
+        Ship:applyAngForce(ang(vec(owner():eyeAngles():pitch(),owner():eyeAngles():roll(),owner():eyeAngles():yaw())) * Ship:mass() * 100 )
+}    

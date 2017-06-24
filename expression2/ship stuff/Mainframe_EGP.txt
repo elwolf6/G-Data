@@ -1,0 +1,232 @@
+@name Mainframe EGP
+@inputs HUD:wirelink Core:entity TargetCore:entity
+@outputs HUDin:wirelink
+@persist Weapons:table WL:table Core:entity
+@trigger 
+
+#Created By ertex, kindly do not remove this line
+#2017-02-12 
+
+#wire HUD to a EGP and press e on the EGP
+#wire Core to ship core
+#wire TargetCore to the trgeted core
+if(~HUD){
+    reset()
+    }
+if(dupefinished()|first()){
+    I=1
+
+    #Core = entity():isWeldedTo():getCoreEnt()
+    HUD:egpClear()
+    HUDin = HUD
+findByClass("sc_Weapon_Base")
+findIncludePlayerProps(owner())
+findSortByDistance(entity():toWorld(vec()))
+
+Weapons = findToTable()
+#Core = entity():getCoreEnt()
+
+U = Weapons:count()
+L = U
+hint("Found "+ U + " Weapon(s)",10)
+
+
+while(U>=I & U > 0){
+    if(Weapons[I,entity]:owner() == owner()){
+        I++
+        }
+else
+{
+    Weapons:remove(I)
+    U--
+    
+    }
+}
+hint(L-Weapons:count() + " Weapons were not Owned by me",10)
+U = Weapons:count()
+I=1
+
+
+while(U>=I & U > 0){ #checks what weapons can fire
+
+    if(Weapons[I,entity]:isValid()){
+        
+       IWeapon = Weapons[I,entity]:getWeaponName()
+       HUD:egpText(I+100,IWeapon,vec2(1300,350+(I*30)))
+       HUD:egpBox(I,vec2(1600,360+(I*30)),vec2(100,10))
+
+    
+   # hint("Weapon # " + I + " was vertified",3)
+ 
+    }
+    else{
+        Weapons:remove(I)
+        hint("Removed weapon # " + I + "For being Invlaid",3)
+        }
+
+I++
+}#weapon can fire is done
+hint(U-Weapons:count() + " Weapons were Nil",10)
+U = Weapons:count()
+hint("Now there are "+ U +" Weapon(s)",10)
+
+I=0
+D=0
+IncVar=0
+#-------------------------------
+
+
+
+#core status setup
+HUD:egpBox(200,vec2(1525,330),vec2(250,50)) #CAP
+HUD:egpBox(201,vec2(1525,270),vec2(250,50)) #Armour
+HUD:egpBox(202,vec2(1525,210),vec2(250,50)) #Shield
+
+HUD:egpBox(210,vec2(1225,330),vec2(250,50)) #CAP (target)
+HUD:egpBox(211,vec2(1225,270),vec2(250,50)) #Armour (target)
+HUD:egpBox(212,vec2(1225,210),vec2(250,50)) #Shield (target)
+
+HUD:egpBox(216,vec2(800,930),vec2(440,100)) #backBox for res display
+HUD:egpColor(216,vec4(55,55,55,100))
+
+   U = Weapons:count()
+I = 1
+   while(U>=I & U > 0){
+
+        
+       WL[I, wirelink] =Weapons[I,entity]:wirelink()
+    I++
+
+}
+
+
+
+timer("run",1)
+}#Init is done
+
+
+#-------------------------------------------------------
+
+#-------------------------------------------------------Start of main loop
+runOnTick(100)
+
+if(clk("run")){
+
+
+
+if(I>U){
+    I=1
+
+    
+    }
+    
+    
+   U = Weapons:count()
+   while(U>=I & U > 0){
+        WLh = WL[I,wirelink]
+        
+            if(I>0){
+           HUD:egpText(I+50,WLh["Shots Remaining", number] +"/" + WLh["Clip Capacity", number]+ " Shot(s) Remaining",vec2(1660,350+(I*30)))
+    }
+        
+       if( WLh["Can Fire", number]==1){
+            HUD:egpColor(I,vec4(0,255,0,255))
+        }
+        else
+        {
+             if( WLh["Reloading", number]==1){
+            HUD:egpColor(I,vec4(255,255,0,255))
+        }
+        else
+        {
+            HUD:egpColor(I,vec4(255,0,0,255))
+        }
+        }
+            
+  
+
+  I++
+}
+
+
+
+if(Core:isValid()){
+
+Cap = Core:getCapPercent()
+Shield = Core:getShieldPercent()
+Armour = Core:getArmorPercent()
+
+HUD:egpColor(200, vec4(255*(1-Cap),255*Cap,0,255))
+HUD:egpColor(201, vec4(255*(1-Armour),255*Armour,0,255))
+HUD:egpColor(202, vec4(255*(1-Shield),255*Shield,0,255))
+
+HUD:egpText(30,"CAP : "+Cap*100 + "%",vec2(1430,330))
+HUD:egpText(31,"Armour : "+Armour*100 + "%",vec2(1430,270))
+HUD:egpText(32,"Shield : "+Shield*100 + "%",vec2(1430,210))
+
+
+Antimatter = Core:lsAmount("Antimatter")
+Hydrogen = Core:lsAmount("Hydrogen")
+HUD:egpText(213,"Antimatter : "+round(Antimatter)+"  "+round(Antimatter/Core:lsCapacity("Antimatter"))+"%",vec2(600,900))
+HUD:egpText(214,"Hydrogen   : "+round(Hydrogen)+"  "+round(Hydrogen/Core:lsCapacity("Hydrogen"))+"%",vec2(600,920))
+
+if(Hydrogen < Antimatter){
+    LiquidableEnergy = Antimatter*1667
+}
+else{
+    LiquidableEnergy = Hydrogen*1667
+    }
+
+HUD:egpText(215,"Liquidable Energy : "+round(LiquidableEnergy)+"  "+ round(LiquidableEnergy/Core:lsAmount("Energy"))+"% of core max",vec2(600,940))
+
+}
+
+        
+
+if(TargetCore:isValid()){
+    
+HUD:egpPos(39,TargetCore:toWorld(vec()))
+
+TargetCap = TargetCore:getCapPercent()
+TargetShield = TargetCore:getShieldPercent()
+TargetArmour = TargetCore:getArmorPercent()
+
+HUD:egpColor(210, vec4(255*(1-TargetCap),255*TargetCap,0,255))
+HUD:egpColor(211, vec4(255*(1-TargetArmour),255*TargetArmour,0,255))
+HUD:egpColor(212, vec4(255*(1-TargetShield),255*TargetShield,0,255))
+
+HUD:egpText(40,"CAP : "+TargetCap*100 + "%",vec2(1130,330))
+HUD:egpText(41,"Armour : "+TargetArmour*100 + "%",vec2(1130,270))
+HUD:egpText(42,"Shield : "+TargetShield*100 + "%",vec2(1130,210))
+HUD:egpText(43,format("Current Target : " , TargetCore:owner():toString(),"s "+TargetCore:getCoreClass()," Distance : ",floor(Core:pos():distance(TargetCore:pos()))," U"),vec2(1130,160))
+
+
+}
+else{
+HUD:egpColor(210, vec4(255,255,0,0))
+HUD:egpColor(211, vec4(255,255,0,0))
+HUD:egpColor(212, vec4(255,255,0,0))
+    
+    
+HUD:egpText(40,"",vec2(1130,330))
+HUD:egpText(41,"",vec2(1130,270))
+HUD:egpText(42,"",vec2(1130,210))
+    
+}
+timer("run",500)
+    }
+    #The following is updated much more frequently than the previous
+        if(~TargetCore | first()){
+        HUD:egp3DTracker(39,TargetCore:toWorld(vec()))
+        HUD:egpBox(38,vec2(0,0),vec2(1,1000000))
+        HUD:egpBox(37,vec2(0,0),vec2(1000000,1))
+        HUD:egpBoxOutline(36,vec2(0,0),vec2(20,20))
+       # HUD:egpPos(38,HUD:egpPos(39))
+        HUD:egpParent(38,39)
+        HUD:egpParent(37,39)
+        HUD:egpParent(36,39)
+        
+}
+
+
+

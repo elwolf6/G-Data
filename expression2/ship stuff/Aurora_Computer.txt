@@ -1,0 +1,28 @@
+@name Aurora Computer
+@inputs Aurora:entity ShipCore:entity Solar:entity Solar2:entity
+@persist
+@outputs Repairs
+@autoupdate
+
+interval(100)
+
+if( ShipCore["Shield",number] < ShipCore["Max Shield",number]){
+}
+
+if( ShipCore["Armor",number] < ShipCore["Max Armor",number]){
+}
+
+
+
+if(dupefinished()|first()){
+    AngSun=lsGetSunDirection():toAngle()-ang(90,0,0)
+    Seat = entity():isWeldedTo()
+    Aurora:setAng(ang())
+    Solar:setAng(AngSun)
+    Solar2:setAng(AngSun)
+    Aurora:setSubMaterial(2,"models/props_canal/metalcrate001d")
+    Seat:setSubMaterial(1,"models/props_canal/metalcrate001d")
+    Seat:setSubMaterial(3,"spacebuild/controlpanel")
+    Seat:setSubMaterial(2,"models/props_canal/metalcrate001d")
+    Seat:setSubMaterial(4,"iziraider/aurora/main_blue")
+}

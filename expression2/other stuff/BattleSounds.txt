@@ -1,0 +1,19 @@
+@name BattleSounds
+@inputs 
+@outputs 
+@persist 
+@trigger 
+
+owner():soundPlay(1,1000,"bms_ambience/room_ambience/r_ambience_outdoorbattle1a.wav")
+owner():soundPlay(2,1000,"bms_ambience/room_ambience/r_ambience_ob_fargunfire.wav")
+owner():soundPlay(10,1000,"bms_ambience/room_ambience/r_ambience_outdoorbattle4.wav")
+soundDuration("1000")
+owner():soundPlay(3,1000,"bms_objects/vehicles/jet_flyby1.wav")
+owner():soundPlay(11,1000,"explosions/explode6.wav")
+owner():soundPlay(4,1000,"bms_ambience/room_ambience/r_ambience_ob_mortars_ug.wav")
+soundVolume(1,0)
+soundVolume(2,10000000)
+soundVolume(3,10000000)
+soundVolume(4,10000000)
+
+

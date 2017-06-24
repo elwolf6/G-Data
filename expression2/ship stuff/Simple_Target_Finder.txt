@@ -1,0 +1,16 @@
+@name Simple_Target_Finder
+@outputs Target:entity TargetCore:entity
+@persist Target:entity TargetCore:entity 
+
+runOnChat(1)
+LS = owner():lastSaid():lower():explode(" ")
+if (chatClk() & LS[1,string]=="target" ) {
+    interval(100)
+    hideChat(1)
+    Target=findPlayerByName(LS[2,string])
+          findIncludePlayerProps(Target)
+          findByClass("ship_core")
+          TargetCore = findClosest(Target:toWorld(vec()))
+               print(Target:toString(),"----",TargetCore:toString())
+
+}

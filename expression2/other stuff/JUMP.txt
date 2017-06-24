@@ -1,0 +1,54 @@
+@name JUMP
+@outputs
+@model models/props_phx/construct/metal_plate1.mdl
+@persist Jumped
+@inputs Chair:wirelink
+@trigger
+runOnTick(1)
+
+owner():setHealth(100)
+
+
+if(first()) {
+    runOnKeys(owner(),1)
+    Jumped = 0
+    holoCreate(0,owner():attachmentPos("forward")-owner():eye()*50)
+    holoAlpha(0,0)
+    holoEntity(0):setTrails(10,10,3,"trails/smoke",vec(12,28,204),255)
+    holoParentAttachment(0,owner(),"forward")
+}
+elseif(owner():keyWalk()) {
+    owner():setVel(owner():eye()*100 + vec(0,0,1300))
+    owner():setHealth(100)
+    if(!Jumped) {
+        Jumped = 1
+        holoEntity(0):soundPlay(1,3,"explosions/explode4.wav")
+        timer("snd_reset",3000)
+    }
+}
+
+elseif(keyClk()) {
+    local Key = keyClkPressed()
+    if(Key == "n") {
+        owner():setVel(owner():eye()*1000 + vec(0,0,0))
+        owner():setHealth(100)
+        if(!Jumped) {
+            Jumped = 1
+            holoEntity(0):soundPlay(1,3,"explosions/explode4.wav")
+            timer("snd_reset",3000)
+        }
+    }
+
+}
+
+if(keyClk()) {
+    local Key = keyClkPressed()
+    if(Key == "m") {
+        owner():setHealth(100)
+    }
+
+}
+
+elseif(clk("snd_reset")) {
+    Jumped = 0
+}

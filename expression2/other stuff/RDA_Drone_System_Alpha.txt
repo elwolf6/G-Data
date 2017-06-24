@@ -1,0 +1,53 @@
+@name RDA Drone System Alpha
+@inputs StationDock:entity [Turret]:entity Active
+@outputs Fire Target:entity
+@persist Teleport Asteroid:entity
+@trigger
+
+runOnTick(1)
+
+findIncludeClass("sc_turret")
+ArrayT = findToArray()
+Turret = ArrayT[1,entity]
+
+findClearWhiteList()
+findClearBlackList()
+
+findIncludeClass("mining_asteroid")
+Array = findToArray()
+Asteroid = Array[1,entity]
+
+Drone = entity():isWeldedTo()
+DroneCore = Drone:getCoreEnt()
+
+Target = Asteroid
+
+Drone = entity():isWeldedTo()
+
+if ( Active == 1 ) {
+    if(first()){
+        if( DroneCore:getCapAmount()/DroneCore:getCapMax() > 0.99) {
+        Drone:setPosition(Asteroid:pos() + vec(-50,0,0))
+        } 
+    }
+
+    if( DroneCore:lsAmount("Polonium Nitrate")/DroneCore:lsAmount("Polonium Nitrate") > 0.99) {
+        Drone:setPosition(StationDock:pos() + vec(0,0,180))
+        Teleport = 1
+    }
+
+    if( Drone:pos() == Asteroid:pos() + vec(-250,0,0)) {
+        Fire == 1
+    }
+    if( Teleport == 1 ) {
+        emitterCreate(1,Drone:toWorld(vec(0,0,-5-4)))
+        emitterSetMaterial(1,"effects/shipsplosion/fire_001")
+        emitterSetParent(1,Drone)
+        emitterSetEndAlpha(1,250)
+        emitterSetStartAlpha(1,255)
+        emitterSetEndSize(1,0.02)
+        emitterSetStartSize(1,15*4)
+    }
+}
+
+

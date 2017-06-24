@@ -1,0 +1,171 @@
+@name NJCorp Turret
+@inputs Active Fire Target:entity 
+@outputs TBearing TElevation AimSpeed Parented Found Bearing Elevation
+@persist MaxElevation MinElevation Guns:array GunNum Parented
+@persist [Turretwl Turretwl2]:wirelink Found TBearing TElevation AimSpeed Core:entity
+@model models/mandrac/hybride/cap_railgun_base.mdl
+interval(100)
+runOnLast(1)
+
+entity():setSubMaterial(2,"phoenix_storms/bluemetal")
+entity():setSubMaterial(1,"models/props_combine/metal_combinebridge001")
+
+if(first()|dupefinished())
+{
+    #THIS TURRET IS LICENSED TO RDA BY NJCORP. DISTRIBUTION TO OTHER FILTHY CADETS IS NOT ALLOWED, BY PENALTY OF SPACE DEATH.
+    
+    #customize these to make the models not clip
+    MaxElevation = 90
+    MinElevation = -20
+    
+    #No Touchy
+    GunNum = 1
+    TBearing = 0
+    TElevation = 0
+
+    
+    
+    #Yaw Hologram No Touchy
+    holoCreate(1,entity():toWorld(vec(0,0,50)))
+    holoScale(1,vec(1,1,1))
+    holoAng(1,entity():toWorld(ang(0,-90,0)))
+    holoAlpha(1,255)
+    holoModel(1,"models/maxofs2d/cube_tool.mdl")
+    holoParent(1,entity())
+    
+    #Pitch Hologram No Touchy
+    holoCreate(2,entity():toWorld(vec(0,-45,85)))
+    holoScale(2,vec(1,1,1))
+    holoColor(2,vec(91,91,100))
+    holoAng(2,holoEntity(1):toWorld(ang(0,0,0)))
+    holoAlpha(2,255)
+    holoModel(2,"models/maxofs2d/cube_tool.mdl")
+    holoParent(2,1) # this is the holo that acts as an axis
+    
+    #Aesthetic Holos, parent all rotating ones to 1, parent all elevating ones to 2.
+    #YawAesthetic
+    BeamBody = holoCreate(10,entity():toWorld(vec(0,0,0)))
+    holoAng(10,holoEntity(2):toWorld(ang(0,90,0)))
+    holoModel(10,"models/mandrac/energy/cap_beam_body.mdl")
+    holoParent(10,1)
+    holoScale(10,vec(1,1,1))
+    BeamBody:setSubMaterial(2,"models/props_combine/metal_combinebridge001")
+    BeamBody:setSubMaterial(3,"phoenix_storms/bluemetal")
+    
+    #PitchAesthetic
+    BeamGun = holoCreate(11,holoEntity(10):toWorld(vec(0,-50,0)))
+    holoAng(11,holoEntity(2):toWorld(ang(0,90,0)))
+    holoModel(11,"models/mandrac/energy/cap_beam_gun.mdl") 
+    holoParent(11,2)
+    holoScale(11,vec(1,1.5,1))
+    BeamGun:setSubMaterial(2,"phoenix_storms/bluemetal")
+    BeamGun:setSubMaterial(4,"models/props_combine/metal_combinebridge001")
+    BeamGun:setSubMaterial(3,"spacebuild/fusion2")
+}
+
+
+#Below this point no touchy
+if(Active&!Found)
+{
+    findIncludeClass("sc_weapon_base")
+    findInSphere(entity():pos(),200)
+    Guns = findToArray()
+    Found = 1
+    foreach(I,Gun:entity=Guns)
+    {
+        Gun:deparent()
+        Gun:unWeld()
+    }
+    timer("placeguns",100)  
+
+}
+
+if(clk("placeguns"))
+{
+    foreach(I,Gun:entity=Guns)
+    {
+        Gun:deparent()
+        Gun:unWeld()
+        Gun:lsLink(entity():getCoreEnt())
+        Gun2=Gun
+        if(GunNum == 1)
+        {
+            Gun:setPos(holoEntity(2):toWorld(vec(70,62,0))) #Edit this to place them in the barrels
+            Gun:setAng(holoEntity(2):toWorld(ang(0,0,0)))
+            Turretwl = Gun:wirelink() 
+            GunNum++
+        }
+        elseif(GunNum == 2)
+        {
+            Gun2:setPos(holoEntity(2):toWorld(vec(70,-62,0))) #Edit this to place them in the barrels
+            Gun2:setAng(holoEntity(2):toWorld(ang(0,0,0)))
+            Turretwl2 = Gun2:wirelink()
+        }
+    }
+    timer("parentguns",100)  
+}
+
+
+if(clk("parentguns"))
+{
+    foreach(I,Gun:entity=Guns)
+    {
+        Gun:parentTo(holoEntity(2))
+    }
+    local Class = Guns[1,entity]:getWeaponClass()               
+    AimSpeed = 7 #Fighter
+    if (Class == "Frigate") {AimSpeed = 5}
+    elseif (Class == "Cruiser") {AimSpeed = 2}
+    elseif (Class == "Battleship") {AimSpeed = 1.25}
+    elseif (Class == "Capital") {AimSpeed = 0.75}   
+    setName("Turret Mode: "+Class)
+    Parented = 1
+}
+    
+
+
+if(Active&Parented)
+{
+    
+    AimPos=Target:boxCenterW() 
+    Bearing = holoEntity(1):bearing(AimPos)   
+    ClampedBearing = clamp(Bearing,-AimSpeed,AimSpeed)
+    TBearing=TBearing+ClampedBearing
+    Elevation = holoEntity(2):elevation(AimPos)
+    ClampedElevation = clamp(Elevation,-AimSpeed,AimSpeed)
+    TElevation=clamp(TElevation+ClampedElevation,MinElevation,MaxElevation)
+    
+    
+    holoAng(1,entity():toWorld(ang(0,-90-TBearing,0)))
+    holoAng(2,holoEntity(1):toWorld(ang(0-TElevation,0,0)))
+    
+    Turretwl["Target Position", vector] = AimPos
+    Turretwl2["Target Postion", vector] = AimPos        
+    
+    if(Bearing<10&Elevation<10)
+    {
+        Turretwl["Fire", number] = Fire
+        Turretwl2["Fire", number] = Fire
+    }
+    else
+    {
+        Turretwl["Fire", number] = 0
+        Turretwl2["Fire", number] = 0
+    }
+}
+else
+{
+    Turretwl["Fire", number] = 0
+    Turretwl2["Fire", number] = 0
+}
+
+
+
+if(last())
+{
+    foreach(I,Gun:entity=Guns)
+    {
+        Gun:deparent()
+        Gun:setAlpha(255)
+    }
+}

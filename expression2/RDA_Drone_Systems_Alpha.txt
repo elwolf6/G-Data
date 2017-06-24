@@ -1,0 +1,101 @@
+@name RDA Drone Systems Alpha
+@inputs [Fire]:number Target:entity Active:number
+@outputs Parented
+@persist Asteroid:entity
+@trigger 
+
+
+MaxElevation = 360
+MinElevation = -360
+AimSpeed = 5
+    TBearing = 0
+    TElevation = 0
+#This drone system is licensed to Woothie by RDA.  Do not distribute without permission of RDA
+
+#Yaw Hologram No Touchy
+holoCreate(1,entity():toWorld(vec(0,0,50)))
+holoScale(1,vec(1,1,1))
+holoAng(1,entity():toWorld(ang(0,-90,0)))
+holoAlpha(1,255)
+holoModel(1,"models/maxofs2d/cube_tool.mdl")
+holoParent(1,entity())
+
+#Pitch Hologram No Touchy
+holoCreate(2,entity():toWorld(vec(0,45,85)))
+holoScale(2,vec(1,1,1))
+holoColor(2,vec(91,91,100))
+holoAng(2,holoEntity(1):toWorld(ang(0,0,0)))
+holoAlpha(2,255)
+holoModel(2,"models/maxofs2d/cube_tool.mdl")
+holoParent(2,1) # this is the holo that acts as an axis
+
+Drone = holoCreate(11,entity():toWorld(vec(0,-45,0)))
+holoAng(11,holoEntity(2):toWorld(ang(0,90,0)))
+holoModel(11,"models/slyfo/torpedoship1.mdl") 
+holoParent(11,2)
+holoScale(11,vec(1,1,1))
+
+
+#Yaw and Pitch Holos are from NJCorp turret
+
+DBearing = 0
+DElevation = 0
+
+runOnTick(1)
+
+DroneCore = Drone:getCoreEnt()
+
+if(first()){
+findIncludeClass("mining_asteroid")
+findIncludeModel("models/ce_ls3additional/asteroids/asteroid_200.mdl")
+findIncludeModel("models/ce_ls3additional/asteroids/asteroid_250.mdl")
+findIncludeModel("models/ce_ls3additional/asteroids/asteroid_300.mdl")
+findIncludeModel("models/ce_ls3additional/asteroids/asteroid_350.mdl")
+findIncludeModel("models/ce_ls3additional/asteroids/asteroid_400.mdl")
+findIncludeModel("models/ce_ls3additional/asteroids/asteroid_450.mdl")
+findIncludeModel("models/ce_ls3additional/asteroids/asteroid_500.mdl")
+Array = findToArray()
+Asteroid1 = Array[1,entity]
+Asteroid2 = Array[2,entity]
+Asteroid3 = Array[3,entity]
+Asteroid4 = Array[4,entity]
+Asteroid5 = Array[5,entity]
+Asteroid6 = Array[6,entity]
+Asteroid7 = Array[7,entity]
+Asteroid8 = Array[8,entity]
+Asteroid9 = Array[9,entity]
+Asteroid10 = Array[10,entity]
+Asteroid11 = Array[11,entity]
+Asteroid12 = Array[12,entity]
+Asteroid13 = Array[13,entity]
+Asteroid14 = Array[14,entity]
+Asteroid15 = Array[15,entity]
+Asteroid16 = Array[16,entity]
+Asteroid17 = Array[17,entity]
+Asteroid18 = Array[18,entity]
+Asteroid19 = Array[19,entity]
+Asteroid20 = Array[20,entity]
+}
+
+if(Active == 1 )
+{
+    
+    AimPos=Target:boxCenterW()
+    Bearing = holoEntity(1):bearing(AimPos)   
+    ClampedBearing = clamp(Bearing,-AimSpeed,AimSpeed)
+    TBearing=TBearing+ClampedBearing
+    Elevation = holoEntity(2):elevation(AimPos)
+    ClampedElevation = clamp(Elevation,-AimSpeed,AimSpeed)
+    TElevation=clamp(TElevation+ClampedElevation,MinElevation,MaxElevation)
+    
+    
+    holoAng(1,entity():toWorld(ang(0,-90-TBearing,0)))
+    holoAng(2,holoEntity(1):toWorld(ang(0-TElevation,0,0)))
+}
+
+    holoAng(11,(holoEntity(2):toWorld(ang(0,0,0))))
+
+if( DroneCore:getCapAmount()/DroneCore:getCapMax() > 0.99) {
+    holoAng(11,(holoEntity(2):toWorld(ang(0,0,0))))
+}
+

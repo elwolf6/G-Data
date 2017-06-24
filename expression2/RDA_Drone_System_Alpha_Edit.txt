@@ -1,0 +1,79 @@
+@name RDA Mining Drone
+@inputs StationDock:entity Active Turret:entity
+@outputs [Fire]:number Target:entity
+@persist Teleport [Turret]:entity Asteroid:entity TurretW:wirelink
+@trigger
+
+Target = Asteroid
+
+if (first()) {
+    Drone = entity():isWeldedTo()
+    if(Active == 1 ) {
+    Drone:setPosition(StationDock:pos() + vec(0,0,120))
+}
+    DroneCore = Drone:getCoreEnt()
+
+    runOnTick(1)
+}
+
+
+if (findCanQuery()) {
+    findIncludeClass("mining_asteroid")
+    findIncludeClass("sc_turret")
+    
+    findInSphere(Drone:pos(), 999999)
+    
+    ArrayT = findToArray()
+    
+    for (I = 1, ArrayT:count()) {
+        CurrentEntity = ArrayT[I,entity]
+        
+        if (CurrentEntity:type() == "mining_asteroid") {
+            Asteroid = CurrentEntity
+            break
+        }
+    }
+    
+    for (I = 1, ArrayT:count()) {
+        CurrentEntity = ArrayT[I,entity]
+        
+        if (CurrentEntity:type() == "sc_turret") {
+            Turret = CurrentEntity
+            break
+        }
+    }
+    
+}
+
+
+
+if ( Active == 1 ) {
+    if (Asteroid:isValid()){
+            if(Drone:getCapPercent() >= 98){
+        Drone:setPosition(Asteroid:pos() + vec(-800,0,0))
+        } 
+    }
+
+ if (Drone:pos():distance(Asteroid:pos()) == 800) {
+        local WL = Turret:wirelink()
+        WL["Fire", number] = 1
+}
+
+    if( (DroneCore:lsAmount("Ice")/DroneCore:lsAmount("ice") > 0.99) & StationDock:isValid()) {
+        Drone:setPosition(StationDock:pos() + vec(0,0,180))
+        Teleport = 1
+    }
+    
+    if( Teleport == 1 ) {
+        emitterCreate(1,Drone:toWorld(vec(0,0,-5-4)))
+        emitterSetMaterial(1,"effects/shipsplosion/fire_001")
+        emitterSetParent(1,Drone)
+        emitterSetEndAlpha(1,250)
+        emitterSetStartAlpha(1,255)
+        emitterSetEndSize(1,0.02)
+        emitterSetStartSize(1,15*4)
+    }
+}
+
+
+

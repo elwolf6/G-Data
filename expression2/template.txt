@@ -1,0 +1,47 @@
+@name
+@inputs 
+@outputs 
+@persist 
+@trigger 
+
+if(first()|duped()) { #--Program Header
+
+#------------------------
+# EDITABLE VARS
+#------------------------
+
+
+
+#--End of Editable Vars--
+
+
+#---------------------
+# THINK LOOP
+#---------------------
+function void think()
+{
+    
+}
+#--End of Think Loop--
+
+} #--End of Program Header
+
+
+
+#-----------------------
+# PROGRAM ENTRY POINT
+#-----------------------
+if(dupefinished()) { reset() }
+elseif(first())
+{
+    timer("Think", 100)
+}
+
+if(clk("Think"))
+{
+    think()
+    timer("Think", 100)
+}
+
+#set velocity
+#E:setVel(E:forward()*100 + vec(0,10,0))

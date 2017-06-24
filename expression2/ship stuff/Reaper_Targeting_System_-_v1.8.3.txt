@@ -1,0 +1,268 @@
+@name Reaper Targeting System - v1.8.3
+@inputs Apc:wirelink Active RandomTarg NextTarg PrevTarg NextType PrevType
+@outputs FoundE:entity Found:vector TargCount [Blacklist List]:array
+@persist [Targets Blacklist Description Listbox]:array Index Find Width Height Pos:vector2 Size:vector2 RndTrg DermaMode DermaActive
+@persist FactionMode Faction:string
+@trigger all
+runOnChat(1)
+
+if(dupefinished()){reset()}
+if (first()) {
+Index = 1
+Find = 1
+interval(findUpdateRate())
+
+##Based on an E2 by Katelyn
+##Modified heavily by LtBrandon
+##Instructions##
+#To wire the chip up, create a wirelink to your advance pod controller, and wire Active to something outputting 1.
+#This chip is off by default, so make sure you wire Active!
+
+#The array "Targets" is an array of class names that the chip runs a find on.
+#The array "Description" is just a description of the target that you will see, otherwise it will output the class name.
+
+#Targets[8, string] = "class name here"
+#Description[8, string] = "description here"
+   
+#To add on to this, copy the above and put it at the bottom, and put the class name and the description.
+
+
+#   
+    Targets[1, string] = "player"
+    Description[1, string] = "Players"
+#
+    Targets[2, string] = "gmod_wire_expression2"
+    Description[2, string] = "Expressions"
+#
+    Targets[3, string] = "ship_core*"
+    Description[3, string] = "Ship cores"
+#
+    Targets[4, string] = "gyropod_advanced"
+    Description[4, string] = "Gyropods"
+#
+    Targets[5, string] = "prop_physics"
+    Description[5, string] = "All props"
+# 
+    Targets[6, string] = "gmod_wire_*"
+    Description[6, string] = "All Wire"
+#
+    Targets[7, string] = "mining_asteroid"
+    Description[7, string] = "Asteroids"
+#
+
+
+
+#Target Owner Blacklist
+#To add to this, add Blacklist[Count, string] = "PlayerName" where PlayerName is the name of the player you want to add and Count is
+#the current number of players in the list plus 1. Example:
+#    Blacklist[1, string] = "Kanzuke"
+#    Blacklist[2, string] = "Puff Machine"
+#If you've already spawned the E2 and don't want to reset it to add to the blacklist, say !blacklist'player
+#Example !blacklist'Kanzuke
+    
+#Control Mode - Set to 1 for Derma GUI, set to 0 for wire inputs. Default is 1.
+DermaMode = 1
+
+#Faction mode - Exclude targets in your faction? Default is 1.
+FactionMode = 0
+    
+#Derma Window Size - Default is Width 112.5 and Height 380
+Width = 112.5
+Height = 300
+
+#Derma Window Position - Default is 0, 50
+Pos = vec2(0, 50)
+    
+#####################
+#END CUSTOM CONTROLS#
+#DO NOT EDIT BELOW!!#
+#####################
+findExcludePlayer(owner())
+findExcludePlayerProps(owner())
+findExcludeClass("Ship_Core_Base")
+
+for (I=1, Blacklist:count()){
+    findExcludePlayer(Blacklist[I, string])
+    findExcludePlayerProps(Blacklist[I, string])
+}
+
+Faction = owner():getFaction()
+
+Size = vec2(Width, Height)
+timer("Retarget",2500)
+}
+if(Active){
+#Changing target type
+if (dClk("Next")|NextType) {Index++}
+if (dClk("Prev")|PrevType) {Index--}
+if (Index < 1) {Index = Targets:count()}
+if (Index > Targets:count()) {Index = 1}
+
+#Finding
+if (changed(Index)) {
+    findByClass(Targets[Index, string])
+    List = findToArray()
+    if (Index == 1) {
+        for (I=1, Targets:count()) {
+            Listbox[I, string] = List[I, entity]:name()
+        }
+    } else {
+        for (I=1, Targets:count()) {
+            if(List[I, entity]:owner():name()){
+                Listbox[I, string] = List[I, entity]:owner():name()
+            }elseif(List[I, entity]:isValid()){
+                Listbox[I, string] = "World"
+            }else{
+                Listbox[I, string] = ""
+            }
+        }
+    }
+}
+
+#Changing targets
+if (dClk("NextT")|NextTarg) {Find++}
+if (dClk("PrevT")|PrevTarg) {Find--}
+if (Find < 1) {Find = List:count()}
+if (Find > List:count()) {Find = 1}
+if (changed(Find)) {
+    if (Index == 1) {
+            for (I=1, Targets:count()) {
+                Listbox[I, string] = List[I, entity]:name()
+                if (I == Find) {
+                    Listbox[I, string] = ">" + List[I, entity]:name() + "<"
+                }
+            }
+        } else {
+            for (I=1, Targets:count()) {
+                #Listbox[I, string] = List[I, entity]:owner():name()
+                if(List[I, entity]:owner():name()){
+                    Listbox[I, string] = List[I, entity]:owner():name()
+                }elseif(List[I, entity]:isValid()){
+                    Listbox[I, string] = "World"
+                }else{
+                    Listbox[I, string] = ""
+                }
+            
+                if (I == Find) {
+                    Listbox[I, string] = ">" + Listbox[I, string] + "<"
+                }
+            }
+    }
+}
+
+#Random Targeting
+if (clk("Retarget")&RandomTarg) {
+        timer("Retarget",500)
+        RndTrg++
+        if (RndTrg < 1) {RndTrg = List:count()}
+        if (RndTrg > List:count()) {RndTrg = 1}
+        
+    if (List[RndTrg,entity]:pos():distance(entity():pos()) < 17500) {
+     FoundE = List[RndTrg, entity]
+    } 
+}else{
+    #Go after the player selected target
+     if(RandomTarg){timer("Retarget",1500)}
+     FoundE = List[Find, entity]
+     TargCount = List:count()
+}
+
+Found = FoundE:boxCenterW()
+if(DermaMode == 1 & DermaActive == 0){
+    dPod(Apc["Entity", entity])
+    dPanel("Targets", Pos, Size)
+    dButton("Prev", "Targets", vec2(2, 25), vec2((Width / 2) - 4, 20))
+    dButton("Next", "Targets", vec2((Width / 2) + 2, 25), vec2((Width / 2) - 4, 20))
+    dTextBox("Label", "Targets", vec2(0, 50), Width)
+    dText("Label", Description[Index, string])
+    dButton("PrevT", "Targets", vec2(2, 70), vec2((Width / 2) - 4, 20))
+    dButton("NextT", "Targets", vec2((Width / 2) + 2, 70), vec2((Width / 2) - 4, 20))
+    dListBox("Target", "Targets", vec2(0, 90), vec2(Width, Height - 90))
+    dArray("Target", Listbox)
+    
+    DermaActive = 1
+    
+    timer("UpdateDerma", 2000)
+}
+
+if(DermaMode == 1 & DermaActive == 1 & clk("UpdateDerma")){
+    if(changed(Index) | changed(Listbox:count()) | changed(Find) | changed(FactionMode)){
+        dText("Label", Description[Index, string])
+        dArray("Target", Listbox)
+    }
+    
+    timer("UpdateDerma", 500)
+}
+
+
+}else{
+    DermaActive = 0
+}
+
+if(chatClk(owner())){LastSaid = owner():lastSaid():explode("'")}
+
+if(chatClk(owner()) & LastSaid[1, string]:lower() == "!blacklist" ){ 
+    Blacklist[Blacklist:count()+1, string] = LastSaid[2, string]
+    
+    findExcludePlayer(LastSaid[2, string])
+    findExcludePlayerProps(LastSaid[2, string])
+    
+    print("Added "+LastSaid[2, string]+" to Target Blacklist")
+}
+
+if(chatClk(owner()) & LastSaid[1, string]:lower() == "!whitelist" ){ 
+    for(I = 1, Blacklist:count()){
+        if(Blacklist[I, string] == LastSaid[2, string]){
+            Blacklist:removeString(I)
+        }
+    }
+    
+    findIncludePlayer(LastSaid[2, string])
+    findIncludePlayerProps(LastSaid[2, string])
+    
+    print("Added "+LastSaid[2, string]+" to Target Whitelist")
+}
+
+if(chatClk(owner()) & LastSaid[1, string]:lower() == "!addtype"){
+    Targets[Targets:count()+1, string] = LastSaid[2, string]
+    Description[Description:count()+1, string] = LastSaid[2, string]
+    
+    print("New target type accepted!")
+}
+
+if(chatClk(owner()) & LastSaid[1, string]:lower() == "!factionmode"){
+    if(FactionMode == 1){
+        FactionMode = 0
+        
+        for(I = 1,Blacklist:count()){
+            if(Blacklist[I, entity]:owner():getFaction() == Faction){
+                findIncludePlayer(Blacklist[I, string])
+                findIncludePlayerProps(Blacklist[I, string])
+    
+                Blacklist:removeString(I)
+            }
+        }
+        
+        print("Faction targeting mode disabled!")
+    }elseif(FactionMode == 0){
+        FactionMode = 1
+        
+        Players = players()
+        
+        for(I=1,Players:count()){
+            if(Players[I, entity]:getFaction() == Faction){
+                Blacklist[Blacklist:count()+1, string] = Players[I, entity]:name()
+                
+                findExcludePlayer(Blacklist[Blacklist:count(), string])
+                findExcludePlayerProps(Blacklist[Blacklist:count(), string])
+            }
+        }
+        
+        print("Faction targeting mode enabled!")
+    }
+}
+
+if(chatClk(owner()) & LastSaid[1, string]:lower() == "!reset" ){ 
+    print("Targeting Chip Reseting!")
+    reset()
+}
