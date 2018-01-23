@@ -1,0 +1,104 @@
+--@name RDA Automated Drone Mining Computer
+--@author RDA Practical Science Division
+--@autoupdate
+
+-- Credits
+-- njits23 and hobnob: (IsOperator func)
+-- LtBrandon: Misc Lua things
+-- elwolf6: everything else
+
+-- How to use
+-- Put starfall on drone
+-- Wire "Fire" on mining laser to "Fire" on starfall
+-- Parent drone
+-- When the drone is at full Capacitor do !teleport
+-- do !laseron to start mining (don't worry if you start to lose a lot of Capacitor, the laser is still running)
+-- do !laseroff after like 5 minutes
+-- do !dock
+-- pump your stuff in Global Storage
+
+if SERVER then
+
+    --Config
+    Operators = {"elwolf6","njits23","Hobnob"} --Put the people who should have access to the drone here
+    --End Config
+
+    wire.adjustInputs({"Drone","Station"}, {"Entity","Entity"})
+    wire.adjustOutputs({"Target","Fire"},{"entity","Normal"})
+
+    ENT = {Entity=entities.self()}
+    Drone = wire.ports.Drone
+    DroneCore = Drone:GetCoreEntity()
+    Station = wire.ports.Station
+
+    --Asteroid finding
+    AstTable = find.ByClass("mining_asteroid") --Find all the asteroids (returns table)
+    Asteroid = AstTable[1] -- Pick the first thing in the table (returns entity)
+
+    --Find operators (got this function from HobCo), this stops random people from using the Drone
+    function IsOperator(Ent) for I=1,#Operators do if Ent == FindPlayerByName(Operators[I]) then return true end end return false end
+    hook.Add("Think","OperatorCheck", IsOperator) -- Hook that calls IsOperator every server tick
+
+    timer.Simple( 0.1, function()
+        hook.Add("PlayerSay","DroneFalse", function(ply, text)
+            if ( string.lower( text ) == "!teleport") and IsOperator(entities.player()) and ( DroneCore:GetCapAmount()/DroneCore:GetCapMax() < 0.89) then
+                print("Drone doesn't have enough Capacitor!")
+                return ""
+            end
+        end)
+    end )
+
+    --!Teleport command
+    function DroneMove(ply, text)
+        if ( string.lower( text ) == "!teleport") and IsOperator(entities.player()) and ( DroneCore:GetCapAmount()/DroneCore:GetCapMax() > 0.89) then
+            Drone:SetPos(Asteroid:GetPos() + Vector(0,500,0))
+            Drone:SetAngles((Asteroid:GetPos() - Drone:GetPos()):Angle())
+            Drone:SetFrozen(true)
+            timer.Simple(0.1,function()
+                print("Drone Teleported to Asteroid")
+            end)
+            return "" --Hide the command from chat
+        end
+    end
+    hook.Add("PlayerSay","DroneMove",DroneMove) --Hook to tell the function to run
+
+    --!Dock command
+    function DroneDock(ply,text)
+        if ( string.lower( text ) == "!dock") and IsOperator(entities.player()) then
+            CanTP = false
+            Drone:SetPos(Station:GetPos() + Vector(0,0,200))
+            Drone:SetAngles(Angle(0,0,0))
+            timer.Simple(0.1,function()
+                print("Drone Teleported to Dock!")
+            end)
+            return ""
+        end
+    end
+    hook.Add("PlayerSay","DroneDock",DroneDock)
+
+    --!LaserOn command
+    function LaserOn(ply,text)
+        if ( string.lower( text ) == "!laseron") and IsOperator(entities.player()) then
+            timer.Simple(0.1,function()
+                print("Mining Laser On!")
+            end)
+            Drone:SetAngles((Asteroid:GetPos() - Drone:GetPos()):Angle())
+            wire.TriggerOutput("Fire", 1)
+            return "" --Hide the command from chat
+        end
+    end
+    hook.Add("PlayerSay","LaserOn", LaserOn) --Hook to tell the function to run
+
+    --!LaserOff command
+    function LaserOff(ply,text)
+        if ( string.lower( text ) == "!laseroff") and IsOperator(entities.player()) then
+            timer.Simple(0.1,function()
+                print("Mining Laser shutting down")
+            end)
+            wire.TriggerOutput("Fire", 0)
+            return "" --Hide the command from chat
+        end
+    end
+    hook.Add("PlayerSay","LaserOff",LaserOff) --Hook to tell the function to run
+
+end
