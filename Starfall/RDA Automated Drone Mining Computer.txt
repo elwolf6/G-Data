@@ -1,4 +1,4 @@
---@name RDA Automated Drone Mining Computer
+--@name RDA Semi-Automated Drone Mining Computer
 --@author RDA Practical Science Division
 --@autoupdate
 
@@ -12,7 +12,7 @@
 -- Wire "Fire" on mining laser to "Fire" on starfall
 -- Parent drone
 -- When the drone is at full Capacitor do !teleport
--- do !laseron to start mining (don't worry if you start to lose a lot of Capacitor, the laser is still running)
+-- do !laseron to start mining (dont worry if you start to lose a lot of Capacitor, the laser is still running)
 -- do !laseroff after like 5 minutes
 -- do !dock
 -- pump your stuff in Global Storage
@@ -20,7 +20,8 @@
 if SERVER then
 
     --Config
-    Operators = {"elwolf6","njits23","Hobnob"} --Put the people who should have access to the drone here
+    Operators = {tostring(entities.owner()),"elwolf6"} --Put the people who should have access to the drone here. do not remove entities.owner() or else you wont be able to operate the drone
+    --More things will be added here like wheather you want the drone to orbit the asteroid and such
     --End Config
 
     wire.adjustInputs({"Drone","Station"}, {"Entity","Entity"})
@@ -42,16 +43,17 @@ if SERVER then
     timer.Simple( 0.1, function()
         hook.Add("PlayerSay","DroneFalse", function(ply, text)
             if ( string.lower( text ) == "!teleport") and IsOperator(entities.player()) and ( DroneCore:GetCapAmount()/DroneCore:GetCapMax() < 0.89) then
-                print("Drone doesn't have enough Capacitor!")
+                print("Drone doesnt have enough Capacitor!")
                 return ""
             end
         end)
     end )
 
-    --!Teleport command
-    function DroneMove(ply, text)
+    function Commands(ply, text) --All of the commands are in this function
+
+        --!Teleport command
         if ( string.lower( text ) == "!teleport") and IsOperator(entities.player()) and ( DroneCore:GetCapAmount()/DroneCore:GetCapMax() > 0.89) then
-            Drone:SetPos(Asteroid:GetPos() + Vector(0,500,0))
+            Drone:SetPos(Asteroid:GetPos() + Vector(0,0,0))
             Drone:SetAngles((Asteroid:GetPos() - Drone:GetPos()):Angle())
             Drone:SetFrozen(true)
             timer.Simple(0.1,function()
@@ -59,13 +61,14 @@ if SERVER then
             end)
             return "" --Hide the command from chat
         end
-    end
-    hook.Add("PlayerSay","DroneMove",DroneMove) --Hook to tell the function to run
-
-    --!Dock command
-    function DroneDock(ply,text)
+        
+        if ( string.lower( text ) == "!teleport") and IsOperator(entities.player()) and ( DroneCore:GetCapAmount()/DroneCore:GetCapMax() < 0.89) then
+            print("Drone doesnt have enough Capacitor!")
+            return ""
+        end
+        
+        --!Dock command
         if ( string.lower( text ) == "!dock") and IsOperator(entities.player()) then
-            CanTP = false
             Drone:SetPos(Station:GetPos() + Vector(0,0,200))
             Drone:SetAngles(Angle(0,0,0))
             timer.Simple(0.1,function()
@@ -73,11 +76,8 @@ if SERVER then
             end)
             return ""
         end
-    end
-    hook.Add("PlayerSay","DroneDock",DroneDock)
-
-    --!LaserOn command
-    function LaserOn(ply,text)
+        
+        --!LaserOn command
         if ( string.lower( text ) == "!laseron") and IsOperator(entities.player()) then
             timer.Simple(0.1,function()
                 print("Mining Laser On!")
@@ -86,11 +86,7 @@ if SERVER then
             wire.TriggerOutput("Fire", 1)
             return "" --Hide the command from chat
         end
-    end
-    hook.Add("PlayerSay","LaserOn", LaserOn) --Hook to tell the function to run
-
-    --!LaserOff command
-    function LaserOff(ply,text)
+        
         if ( string.lower( text ) == "!laseroff") and IsOperator(entities.player()) then
             timer.Simple(0.1,function()
                 print("Mining Laser shutting down")
@@ -98,7 +94,8 @@ if SERVER then
             wire.TriggerOutput("Fire", 0)
             return "" --Hide the command from chat
         end
+
     end
-    hook.Add("PlayerSay","LaserOff",LaserOff) --Hook to tell the function to run
+    hook.Add("PlayerSay","Commands",Commands) --Hook to tell the function to run
 
 end
