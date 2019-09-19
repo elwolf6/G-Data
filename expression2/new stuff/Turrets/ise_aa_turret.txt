@@ -1,0 +1,46 @@
+@name ISE AA TURRET
+@inputs Axis2:entity Gun1:entity Gun2:entity
+@outputs 
+@persist 
+@trigger 
+
+entity():combatImmune(1)
+
+Axis = entity():isWeldedTo()
+
+Axis2:parentTo(Axis)
+Gun1:parentTo(Axis2)
+Gun2:parentTo(Axis2)
+
+interval(100)
+
+Axis:freeze()
+Gun1:freeze()
+Gun2:freeze()
+
+if(owner():inVehicle())
+{
+    if(owner():keyLeft()) {
+        Axis:setAng(Axis:angles() + ang(0,10,0))
+    }
+    elseif(owner():keyRight()) {
+        Axis:setAng(Axis:angles() + ang(0,-10,0))
+    }
+    
+    if(owner():keyForward()) {
+        Gun1:deparent()
+        Gun2:deparent()
+        Gun1:setAng(Gun1:angles() + ang(10,0,0))
+        Gun2:setAng(Gun2:angles() + ang(10,0,0))
+        Gun1:parentTo(Axis2)
+        Gun2:parentTo(Axis2)
+    }
+    elseif(owner():keyBack()) {
+        Gun1:deparent()
+        Gun2:deparent()
+        Gun1:setAng(Gun1:angles() + ang(-10,0,0))
+        Gun2:setAng(Gun2:angles() + ang(-10,0,0))
+        Gun1:parentTo(Axis2)
+        Gun2:parentTo(Axis2)
+    }
+}

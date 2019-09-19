@@ -1,0 +1,96 @@
+@name Raztech repair controller v1.1
+@inputs Full_repair
+@persist I Core:entity [Modules Shields Armors Hulls Amounts Costs Names Wirelinks]:array
+#made by razor9511
+
+if(first()|dupefinished()){
+    #get core
+    Core = entity():getCoreEnt()
+    
+    #get repairs
+    findIncludePlayerProps(owner())
+    findIncludeEntities(entity():getConstraints())
+    findByClass("sc_repair")
+    local MODULES = findToArray()
+    
+    #get repairs data
+    foreach(I, CurrMod:entity=MODULES){
+        if(CurrMod:getRepairType() != "Capacitor"){
+            if(CurrMod:getRepairType() == "Shield"){
+                Shields[I, number] = I
+            }elseif(CurrMod:getRepairType() == "Armor"){
+                Armors[I, number] = I
+            }elseif(CurrMod:getRepairType() == "Hull"){
+                Hulls[I, number] = I
+            }
+            Modules[I, entity] = CurrMod
+            Amounts[I, number] = CurrMod:getRepairAmount()
+            Costs[I, number] = CurrMod:getRepairCost()
+            Names[I, string] = CurrMod:getRepairName()
+            Wirelinks[I, wirelink] = CurrMod:wirelink()
+        }
+    }
+    #run timer
+    timer("run", 3000)
+}
+
+#run e2
+if(clk("run")){
+    if(Core:getShieldPercent() < 0.99){
+        foreach(J, I:number=Shields){
+            if(Wirelinks[I, wirelink]["Cycle %", number] == 0){
+                if(((Core:getCapAmount()-Costs[I, number])/Core:getCapMax()) > 0.15){
+                    if((Core:getShieldMax()-Core:getShieldAmount() > Amounts[I, number]) | Full_repair){
+                        Wirelinks[I, wirelink]["On", number] = 1
+                        print("Raztech Repair Controller: "+Names[I,string]+" ("+Modules[I, entity]:toString()+") activated.")
+                        timer("shutdown", 1050)
+                        break
+                    }
+                }
+            }
+        }
+    }
+    if(Core:getArmorPercent() < 0.99){
+        foreach(J, I:number=Armors){
+            if(Wirelinks[I, wirelink]["Cycle %", number] == 0){
+                if(((Core:getCapAmount()-Costs[I, number])/Core:getCapMax()) > 0.15){
+                    if((Core:getArmorMax()-Core:getArmorAmount() > Amounts[I, number]) | Full_repair){
+                        Wirelinks[I, wirelink]["On", number] = 1
+                        print("Raztech Repair Controller: "+Names[I,string]+" ("+Modules[I, entity]:toString()+") activated.")
+                        timer("shutdown", 1050)
+                        break
+                    }
+                }
+            }
+        }
+    }
+    if(Core:getHullPercent() < 0.99){
+        foreach(J, I:number=Hulls){
+            if(Wirelinks[I, wirelink]["Cycle %", number] == 0){
+                if(((Core:getCapAmount()-Costs[I, number])/Core:getCapMax()) > 0.15){
+                    if((Core:getHullMax()-Core:getHullAmount() > Amounts[I, number]) | Full_repair){
+                        Wirelinks[I, wirelink]["On", number] = 1
+                        print("Raztech Repair Controller: "+Names[I,string]+" ("+Modules[I, entity]:toString()+") activated.")
+                        timer("shutdown", 1050)
+                        break
+                    }
+                }
+            }
+        }
+    }
+    timer("run", 1000)
+}
+
+if(clk("shutdown")){
+    foreach(J, CurrMod:entity=Modules){
+        Wirelinks[J, wirelink]["On", number] = 0
+    }
+}
+
+
+
+
+
+
+
+

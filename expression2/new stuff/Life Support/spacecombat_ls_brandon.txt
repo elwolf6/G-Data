@@ -1,0 +1,42 @@
+@name Reactor Automation
+@inputs Core:entity Reactor1:wirelink Reactor2:wirelink Reactor3:wirelink StartMain
+@trigger none
+
+interval(1000)
+
+NitrogenAmount = Core:lsAmount("Nitrogen")
+EnergyAmount = Core:lsAmount("Energy")
+
+UraniumAmount = Core:lsAmount("Uranium")
+DepletedUraniumAmount = Core:lsAmount("Depleted Uranium")
+PlutoniumAmount = Core:lsAmount("Plutonium")
+
+if(NitrogenAmount >= 20000)
+{
+    if(UraniumAmount >= 720)
+    {
+        Reactor1["On",number] = 1
+    }   
+    else
+    {
+        Reactor1["On",number] = 0
+    }
+    
+    if(DepletedUraniumAmount >= 720 & UraniumAmount >= 720)
+    {
+        Reactor2["On",number] = 1
+    }
+    else
+    {
+        Reactor2["On",number] = 0
+    }
+    
+    if(PlutoniumAmount >= 960 & StartMain)
+    {
+        Reactor3["On",number] = 1
+    }
+    else
+    {
+        Reactor3["On",number] = 0
+    } 
+}

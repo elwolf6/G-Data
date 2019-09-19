@@ -1,0 +1,16 @@
+@name Anti-Gravity Drive
+@inputs 
+@outputs 
+@persist 
+@trigger 
+
+if (first() | dupefinished()) {
+Ship = entity():getConstraints()
+Ship:insertEntity(1, entity())
+
+for (I = 1, Ship:count()) {
+Ship[I,entity]:sbSetGravityOverride(1)
+Ship[I,entity]:propGravity(0)
+}
+}
+

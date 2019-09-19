@@ -1,0 +1,275 @@
+# Author: Razor9511
+# Updated: January 5, 2018
+#
+# Use:
+# To use, place the chip anywhere and wire EGP to an egp v3 hud
+# or screen (hud is preferred and better, find it in the egpv3 
+# tool drop down menu in wiremod tab). Then wire Next to some kind of
+# input (button/numpad input/e2/pod controller). Optionally you can
+# wire Last to return to the previous target. Hit use on a egpv3 hud to display.
+#
+# Notes:
+# -You have to press use on the hud for it to show on your screen
+# -You really should be using a egp hud vs a screen
+# -The index number next to the target's name may not be 100%
+#   accurate if the number of cores change, just switch targets
+#   and it will fix itself
+# -You can change the HUD position on your screen by changing the
+#   two values X and Y in the config section
+# -Alch is a faggot <3
+# -The list of cores update every 10 seconds, so a new/destroyed
+#   core may not immediately be updated
+# -There is a config section where you can modify many aspects of the hud
+#   starting on line 63
+# 
+# Key:
+# Owner's Name (core index/total cores)
+# Ship Name
+# Ship Class (core entity id)
+# Shield: amount/max (percent remaining)
+# Armor: amount/max (percent remaining)
+# Hull: amount/max (percent remaining)
+# Capacitor: amount/max (percent remaining)
+#
+# Fair Use and Legality:
+# This chip is provided as is and is designed to work only
+# as instructed. This is provided under Creative Commons and
+# may be modified and/or shared with anyone as long as proper
+# credit is given to the original author (Razor9511). Failure to
+# give credit by plagiarising or removing this header is subject
+# to administrative punishment.
+#
+# Additional Credit:
+# divran is credited for his nice number function
+# arcticfox got the egp auto detection to work
+# elwolf was there with emotional support
+# ertex helped with reticle concept
+# kanzuke was there with egp position and checking logic
+
+@name Razors's Simple Target Finder v1.4
+@inputs Next Last EGP:wirelink
+@outputs Target:entity
+@persist I Delaying Cores:array
+#made by razor9511 
+
+if(first()|dupefinished()) {
+    
+    #please dont change this number
+    local Version = 1.4
+    #its a free chip, i only ask that one thing
+    #and to not remove the header >.>
+    
+    ##################
+    #EGP CONFIG START
+    ##################
+    #
+    #change the probally red values in this section however you wish
+    #RGB = red,green,blue
+    #
+    #change hud position here (X,Y from top left)
+    #default X=20, y=50
+    local X = 20
+    local Y = 50
+    #
+    #change hud textcolor
+    #RGB default vec(0,255,0)
+    local TextColor = vec(0,255,0)
+    #
+    #change hud background color
+    #RGB default vec(0,0,0)
+    local BackgroundColor = vec(0,0,0)
+    #
+    #change hud background transparency
+    #default 150
+    local BackgroundTransparency = 150
+    #
+    #change hud outline color
+    #RGB default vec(255,255,255)
+    local OutlineColor = vec(255,255,255)
+    #
+    #change targeting reticle style
+    #default 1, legacy 2, disabled 0
+    local ReticleType = 1
+    #
+    #change targeting reticle square color
+    #RGB default vec(0,255,0)
+    local ReticleSquareColor = vec(0,255,0)
+    #
+    #change targeting reticle line color
+    #RGB default vec(255,255,255)
+    local ReticleLineColor = vec(255,255,255)
+    #
+    ##################
+    #END CONFIG
+    #MODIFYING CODE BELOW MAY BREAK CHIP
+    ##################
+    
+    #target changing function
+    function void changeTarget(Bool) {
+        Count = Cores:count()
+        I+=Bool
+        if(I > Count) {
+            I = 1
+        }
+        if(I < 1) {
+            I = Count
+        }
+        Target = Cores[I, entity]
+    }
+    
+    #Divran Nice Number Function, thanks divran <3
+    function string nicenumber(N) 
+    {
+        N = abs(N)
+        local Billion = round(N/10^9,2)
+        if (floor(Billion) > 0) {return Billion + "B"}
+        N = N % 10^9
+            
+        local Million = round(N/10^6,1)
+        if (floor(Million) > 0) {return Million + "M"}
+        N = N % 10^6
+            
+        local Thousand = round(N/10^3,1)
+        if (floor(Thousand) > 0) {return Thousand + "K"}
+        N = N % 10^3
+            
+        return ""+round(N)
+    }
+    
+    #refreshes list of ship cores
+    function void refreshCores()
+    {
+        findByClass("ship_core")
+        Cores = findToArray()
+        EGP:egpSetText(4, Target:owner():name():sub(1,30) + " (" + I + "/" + Cores:count() + ")")
+        timer(10000,1,"refreshCores","refreshCores()")
+    }
+    
+    #updates egp data
+    function void updateEGP()
+    {
+        Shield = Target:getShieldAmount()
+        Armor = Target:getArmorAmount()
+        Hull = Target:getHullAmount()
+        Capacitor = Target:getCapAmount()
+        
+        if(changed(Shield)) {
+            EGP:egpSetText(7,"Shield: "+nicenumber(Shield)+"/"+nicenumber(Target:getShieldMax())+" ("+round(Target:getShieldPercent()*100)+"%)")
+        }
+        if(changed(Armor)) {
+            EGP:egpSetText(8,"Armor: "+nicenumber(Armor)+"/"+nicenumber(Target:getArmorMax())+" ("+round(Target:getArmorPercent()*100)+"%)")
+        }
+        if(changed(Hull)) {
+            EGP:egpSetText(9,"Hull: "+nicenumber(Hull)+"/"+nicenumber(Target:getHullMax())+" ("+round(Target:getHullPercent()*100)+"%)")
+        }
+        if(changed(Capacitor)) {
+            EGP:egpSetText(10,"Capacitor: "+nicenumber(Capacitor)+"/"+nicenumber(Target:getCapMax())+" ("+round(Target:getCapPercent()*100)+"%)")
+        }
+        if(changed(Target)) {
+            EGP:egpSetText(4, Target:owner():name():sub(1,30) + " (" + I + "/" + Cores:count() + ")")
+            EGP:egpSetText(5, Target:getShipName())
+            EGP:egpSetText(6, Target:getCoreClass() + " (" + Target:id() + ")")
+            
+            EGP:egp3DTracker(100, vec(0,0,0))
+            EGP:egpParent(100, Target)
+        }
+        timer(1000,1,"updateEGP","updateEGP()")
+    }
+    
+    setName("Razor's Simple Target Finder v"+Version)
+
+    #egp setup
+    EGP:egpClear()
+    EGP:egpDrawTopLeft(1)
+    
+    EGP:egpRoundedBoxOutline(1, vec2(X-15,Y-5), vec2(300, 210))
+    EGP:egpColor(1,OutlineColor)
+    
+    EGP:egpRoundedBox(2, vec2(X-15,Y-5), vec2(300, 210))
+    EGP:egpColor(2, BackgroundColor)
+    EGP:egpAlpha(2, BackgroundTransparency)
+    
+    EGP:egpText(3,"Razor's Ship Core Targeter v"+Version,vec2(X,Y))
+    EGP:egpColor(3,TextColor)
+    
+    Y+=30
+    EGP:egpText(4,toString(Target),vec2(X,Y))
+    EGP:egpColor(4,TextColor)
+    Y+=25
+    EGP:egpText(5,"(null)",vec2(X,Y))
+    EGP:egpColor(5,TextColor)
+    Y+=25
+    EGP:egpText(6,toString(Target:owner()),vec2(X,Y))
+    EGP:egpColor(6,TextColor)
+    Y+=25
+    EGP:egpText(7,"Shield: ",vec2(X,Y))
+    EGP:egpColor(7,TextColor)
+    Y+=25
+    EGP:egpText(8,"Armor: ",vec2(X,Y))
+    EGP:egpColor(8,TextColor)
+    Y+=25
+    EGP:egpText(9,"Hull: ",vec2(X,Y))
+    EGP:egpColor(9,TextColor)
+    Y+=25
+    EGP:egpText(10,"Capacitor: ",vec2(X,Y))
+    EGP:egpColor(10,TextColor)
+    
+    #egp reticle
+    EGP:egp3DTracker(100, vec(0,0,0))
+    if(ReticleType == 1)
+    {
+        EGP:egpBoxOutline(101, vec2(-15,-15), vec2(30,30))
+        EGP:egpColor(101, ReticleSquareColor)
+        EGP:egpParent(101,100)
+        EGP:egpLine(102,vec2(0,10),vec2(0,1000000))
+        EGP:egpColor(102, ReticleLineColor)
+        EGP:egpParent(102,100)
+        EGP:egpLine(103, vec2(0,-10), vec2(0,-1000000))
+        EGP:egpColor(103, ReticleLineColor)
+        EGP:egpParent(103,100)
+        EGP:egpLine(104, vec2(10,0), vec2(1000000,0))
+        EGP:egpColor(104, ReticleLineColor)
+        EGP:egpParent(104,100)
+        EGP:egpLine(105, vec2(-10,0), vec2(-1000000,0))
+        EGP:egpColor(105, ReticleLineColor)
+        EGP:egpParent(105,100)
+    }
+    elseif(ReticleType == 2)
+    {
+        EGP:egpBox(101, vec2(-6,-6), vec2(15,15))
+        EGP:egpColor(101, ReticleSquareColor)
+        EGP:egpParent(101,100)
+        EGP:egpLine(102, vec2(-20,0), vec2(20,0))
+        EGP:egpColor(102, ReticleLineColor)
+        EGP:egpParent(102,100)
+        EGP:egpLine(103, vec2(0,0), vec2(0,20))
+        EGP:egpColor(103, ReticleLineColor)
+        EGP:egpParent(103,100)
+    }
+    elseif(ReticleType == 0)
+    {}
+    else
+    {
+        print("Razor's Target Finder: Invalid Reticle option. Reticle is disabled, edit config (line 92?) to restore or stop this message.")
+    }
+    
+    #set index
+    I = 0
+    
+    #start timers
+    timer(500,1,"refreshCores","refreshCores()")
+    timer(1000,1,"updateEGP","updateEGP()")
+}
+elseif(~Next & Next){ #select next target
+    changeTarget(1)
+}
+elseif(~Last & Last){ #select previous target
+    changeTarget(-1)
+}
+
+if(changed(EGP)){ #check to see if egp screen/hud is changed
+    if(EGP){
+        reset()
+    }
+}
+

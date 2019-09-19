@@ -1,0 +1,120 @@
+@name Raztech repair controller v1.2
+@inputs Full_repair Restart
+@persist I Core:entity [Modules Shields Armors Hulls Amounts Costs Names Wirelinks]:array
+#made by razor9511
+
+if(first()|dupefinished())
+{
+    #startup, find ents/populate arrs
+    function void startup()
+    {
+        #get core
+        Core = entity():getCoreEnt()
+        
+        #check if core is valid, then run startup
+        if(!Core:isValid())
+        {
+            print("Raztech Repair Controller: invalid core, chip not starting")
+        }
+        else
+        {
+            #get repairs
+            findIncludePlayerProps(owner())
+            findIncludeEntities(entity():getConstraints())
+            findByClass("sc_repair")
+            local MODULES = findToArray()
+            
+            #get repairs data
+            foreach(I, CurrMod:entity=MODULES)
+            {
+                if(CurrMod:getRepairType() != "Capacitor"){
+                    if(CurrMod:getRepairType() == "Shield"){
+                        Shields[I, number] = I
+                    }elseif(CurrMod:getRepairType() == "Armor"){
+                        Armors[I, number] = I
+                    }elseif(CurrMod:getRepairType() == "Hull"){
+                        Hulls[I, number] = I
+                    }
+                    Modules[I, entity] = CurrMod
+                    Amounts[I, number] = CurrMod:getRepairAmount()
+                    Costs[I, number] = CurrMod:getRepairCost()
+                    Names[I, string] = CurrMod:getRepairName()
+                    Wirelinks[I, wirelink] = CurrMod:wirelink()
+                }
+            } 
+            
+            #start running
+            timer(3000,1,"main","main()")
+        }
+    }
+    
+    #shutdown the modules
+    function void shutdown()
+    {
+        foreach(J, CurrMod:entity=Modules){
+            Wirelinks[J, wirelink]["On", number] = 0
+        }
+    }
+    
+    #actually run the e2 and do shit
+    function void main()
+    {
+        if(Core:getShieldPercent() < 0.99){
+            foreach(J, I:number=Shields){
+                if(Wirelinks[I, wirelink]["Cycle %", number] == 0){
+                    if(((Core:getCapAmount()-Costs[I, number])/Core:getCapMax()) > 0.15){
+                        if((Core:getShieldMax()-Core:getShieldAmount() > Amounts[I, number]) | Full_repair){
+                            Wirelinks[I, wirelink]["On", number] = 1
+                            print("Raztech Repair Controller: "+Names[I,string]+" ("+Modules[I, entity]:toString()+") activated.")
+                            timer(1050,1,"shutdown","shutdown()")
+                            break
+                        }
+                    }
+                }
+            }
+        }
+        if(Core:getArmorPercent() < 0.99){
+            foreach(J, I:number=Armors){
+                if(Wirelinks[I, wirelink]["Cycle %", number] == 0){
+                    if(((Core:getCapAmount()-Costs[I, number])/Core:getCapMax()) > 0.15){
+                        if((Core:getArmorMax()-Core:getArmorAmount() > Amounts[I, number]) | Full_repair){
+                            Wirelinks[I, wirelink]["On", number] = 1
+                            print("Raztech Repair Controller: "+Names[I,string]+" ("+Modules[I, entity]:toString()+") activated.")
+                            timer(1050,1,"shutdown","shutdown()")
+                            break
+                        }
+                    }
+                }
+            }
+        }
+        if(Core:getHullPercent() < 0.99){
+            foreach(J, I:number=Hulls){
+                if(Wirelinks[I, wirelink]["Cycle %", number] == 0){
+                    if(((Core:getCapAmount()-Costs[I, number])/Core:getCapMax()) > 0.15){
+                        if((Core:getHullMax()-Core:getHullAmount() > Amounts[I, number]) | Full_repair){
+                            Wirelinks[I, wirelink]["On", number] = 1
+                            print("Raztech Repair Controller: "+Names[I,string]+" ("+Modules[I, entity]:toString()+") activated.")
+                            timer(1050,1,"shutdown","shutdown()")
+                            break
+                        }
+                    }
+                }
+            }
+        }
+        timer(1000,1,"main","main()")
+    }
+
+    #start e2
+    startup()
+}
+elseif(~Restart & Restart){ #restart e2
+    print("Raztech Repair Controller: chip restarting")
+    startup()
+}
+
+
+
+
+
+
+

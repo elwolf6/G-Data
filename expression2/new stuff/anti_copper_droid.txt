@@ -1,0 +1,15 @@
+@name Anti Copper Droid
+@inputs 
+@outputs 
+@persist 
+@trigger 
+
+if (first() | dupefinished()) {
+Ship = entity():getConstraints()
+Ship:insertEntity(1, entity())
+
+for (I = 1, Ship:count()) {
+Ship[I,entity]:combatImmune(1)
+}
+}
+
